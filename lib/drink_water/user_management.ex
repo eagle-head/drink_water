@@ -24,18 +24,23 @@ defmodule DrinkWater.UserManagement do
   @doc """
   Gets a single user.
 
-  Raises `Ecto.NoResultsError` if the User does not exist.
+  Returns `{:ok, %User{}}` if the user exists, `{:error, :not_found}` otherwise.
 
   ## Examples
 
-      iex> get_user!(123)
-      %User{}
+      iex> get_user(123)
+      {:ok, %User{}}
 
-      iex> get_user!(456)
-      ** (Ecto.NoResultsError)
+      iex> get_user(456)
+      {:error, :not_found}
 
   """
-  def get_user!(id), do: Repo.get!(User, id)
+  def get_user(id) do
+    case Repo.get(User, id) do
+      nil -> {:error, :not_found}
+      user -> {:ok, user}
+    end
+  end
 
   @doc """
   Creates a user.

@@ -5,26 +5,26 @@ defmodule DrinkWaterWeb.UserControllerTest do
   alias DrinkWater.UserManagement.User
 
   @create_attrs %{
-    email: "some email",
-    first_name: "some first_name",
-    last_name: "some last_name",
-    birth_date: ~D[2026-03-13],
-    biological_sex: 42,
-    weight: "120.5",
-    weight_unit: 42,
-    height: "120.5",
-    height_unit: 42
+    email: "john.doe@example.com",
+    first_name: "John",
+    last_name: "Doe",
+    birth_date: ~D[1990-05-15],
+    biological_sex: :male,
+    weight: "75.0",
+    weight_unit: :kg,
+    height: "175.0",
+    height_unit: :cm
   }
   @update_attrs %{
-    email: "some updated email",
-    first_name: "some updated first_name",
-    last_name: "some updated last_name",
-    birth_date: ~D[2026-03-14],
-    biological_sex: 43,
-    weight: "456.7",
-    weight_unit: 43,
-    height: "456.7",
-    height_unit: 43
+    email: "jane.doe@example.com",
+    first_name: "Jane",
+    last_name: "Doe",
+    birth_date: ~D[1992-08-20],
+    biological_sex: :female,
+    weight: "65.0",
+    weight_unit: :kg,
+    height: "168.0",
+    height_unit: :cm
   }
   @invalid_attrs %{
     email: nil,
@@ -58,15 +58,15 @@ defmodule DrinkWaterWeb.UserControllerTest do
 
       assert %{
                "id" => ^id,
-               "biological_sex" => 42,
-               "birth_date" => "2026-03-13",
-               "email" => "some email",
-               "first_name" => "some first_name",
-               "height" => "120.5",
-               "height_unit" => 42,
-               "last_name" => "some last_name",
-               "weight" => "120.5",
-               "weight_unit" => 42
+               "biological_sex" => "male",
+               "birth_date" => "1990-05-15",
+               "email" => "john.doe@example.com",
+               "first_name" => "John",
+               "height" => "175.0",
+               "height_unit" => "cm",
+               "last_name" => "Doe",
+               "weight" => "75.0",
+               "weight_unit" => "kg"
              } = json_response(conn, 200)["data"]
     end
 
@@ -87,15 +87,15 @@ defmodule DrinkWaterWeb.UserControllerTest do
 
       assert %{
                "id" => ^id,
-               "biological_sex" => 43,
-               "birth_date" => "2026-03-14",
-               "email" => "some updated email",
-               "first_name" => "some updated first_name",
-               "height" => "456.7",
-               "height_unit" => 43,
-               "last_name" => "some updated last_name",
-               "weight" => "456.7",
-               "weight_unit" => 43
+               "biological_sex" => "female",
+               "birth_date" => "1992-08-20",
+               "email" => "jane.doe@example.com",
+               "first_name" => "Jane",
+               "height" => "168.0",
+               "height_unit" => "cm",
+               "last_name" => "Doe",
+               "weight" => "65.0",
+               "weight_unit" => "kg"
              } = json_response(conn, 200)["data"]
     end
 
@@ -112,9 +112,25 @@ defmodule DrinkWaterWeb.UserControllerTest do
       conn = delete(conn, ~p"/api/users/#{user}")
       assert response(conn, 204)
 
-      assert_error_sent 404, fn ->
-        get(conn, ~p"/api/users/#{user}")
-      end
+      conn = get(conn, ~p"/api/users/#{user}")
+      assert json_response(conn, 404)
+    end
+  end
+
+  describe "not found" do
+    test "show returns 404 for nonexistent user", %{conn: conn} do
+      conn = get(conn, ~p"/api/users/0")
+      assert json_response(conn, 404)
+    end
+
+    test "update returns 404 for nonexistent user", %{conn: conn} do
+      conn = put(conn, ~p"/api/users/0", user: @update_attrs)
+      assert json_response(conn, 404)
+    end
+
+    test "delete returns 404 for nonexistent user", %{conn: conn} do
+      conn = delete(conn, ~p"/api/users/0")
+      assert json_response(conn, 404)
     end
   end
 

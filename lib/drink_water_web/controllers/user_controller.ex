@@ -21,22 +21,21 @@ defmodule DrinkWaterWeb.UserController do
   end
 
   def show(conn, %{"id" => id}) do
-    user = UserManagement.get_user!(id)
-    render(conn, :show, user: user)
+    with {:ok, user} <- UserManagement.get_user(id) do
+      render(conn, :show, user: user)
+    end
   end
 
   def update(conn, %{"id" => id, "user" => user_params}) do
-    user = UserManagement.get_user!(id)
-
-    with {:ok, %User{} = user} <- UserManagement.update_user(user, user_params) do
+    with {:ok, user} <- UserManagement.get_user(id),
+         {:ok, %User{} = user} <- UserManagement.update_user(user, user_params) do
       render(conn, :show, user: user)
     end
   end
 
   def delete(conn, %{"id" => id}) do
-    user = UserManagement.get_user!(id)
-
-    with {:ok, %User{}} <- UserManagement.delete_user(user) do
+    with {:ok, user} <- UserManagement.get_user(id),
+         {:ok, %User{}} <- UserManagement.delete_user(user) do
       send_resp(conn, :no_content, "")
     end
   end

@@ -11,15 +11,15 @@ defmodule DrinkWater.UserManagementFixtures do
     {:ok, user} =
       attrs
       |> Enum.into(%{
-        biological_sex: 42,
-        birth_date: ~D[2026-03-13],
-        email: "some email",
-        first_name: "some first_name",
-        height: "120.5",
-        height_unit: 42,
-        last_name: "some last_name",
-        weight: "120.5",
-        weight_unit: 42
+        email: "user#{System.unique_integer([:positive])}@example.com",
+        first_name: "John",
+        last_name: "Doe",
+        birth_date: ~D[1990-05-15],
+        biological_sex: :male,
+        weight: "75.0",
+        weight_unit: :kg,
+        height: "175.0",
+        height_unit: :cm
       })
       |> DrinkWater.UserManagement.create_user()
 
