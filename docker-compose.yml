@@ -1,0 +1,45 @@
+# =============================================================================
+# DRINK WATER API (PHOENIX) - DOCKER COMPOSE CONFIGURATION
+# =============================================================================
+# Automatically loads .env file from the same directory when running:
+#   docker compose up -d
+#
+# All variables use ${VAR:-default} syntax so the file works with or without
+# a .env file.  Copy .env.example to .env to customise values.
+# =============================================================================
+
+services:
+  db:
+    container_name: drink_water_db
+    image: postgres:${POSTGRES_VERSION:-17-alpine}
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-drink_water_dev}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-drink_water_dev}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: ${POSTGRES_MEMORY_LIMIT:-512M}
+          cpus: "${POSTGRES_CPU_LIMIT:-0.5}"
+        reservations:
+          memory: 128M
+
+volumes:
+  pgdata:
+    name: drink_water_pgdata
