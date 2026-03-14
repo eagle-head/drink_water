@@ -106,4 +106,46 @@ defmodule DrinkWater.UserManagement do
   def change_user(%User{} = user, attrs \\ %{}) do
     User.changeset(user, attrs)
   end
+
+  alias DrinkWater.UserManagement.AlarmSettings
+
+  @doc """
+  Gets the alarm settings for a user.
+
+  Returns `{:ok, %AlarmSettings{}}` or `{:error, :not_found}`.
+  """
+  def get_alarm_settings_by_user(user_id) do
+    case Repo.get_by(AlarmSettings, user_id: user_id) do
+      nil -> {:error, :not_found}
+      alarm_settings -> {:ok, alarm_settings}
+    end
+  end
+
+  @doc """
+  Creates alarm settings for a user.
+
+  The `user_id` is set via association, not through user input.
+  """
+  def create_alarm_settings(%User{} = user, attrs) do
+    user
+    |> Ecto.build_assoc(:alarm_settings)
+    |> AlarmSettings.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates alarm settings.
+  """
+  def update_alarm_settings(%AlarmSettings{} = alarm_settings, attrs) do
+    alarm_settings
+    |> AlarmSettings.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes alarm settings.
+  """
+  def delete_alarm_settings(%AlarmSettings{} = alarm_settings) do
+    Repo.delete(alarm_settings)
+  end
 end

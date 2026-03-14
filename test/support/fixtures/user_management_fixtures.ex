@@ -25,4 +25,23 @@ defmodule DrinkWater.UserManagementFixtures do
 
     user
   end
+
+  @doc """
+  Generate alarm settings for a user.
+  """
+  def alarm_settings_fixture(user \\ :new, attrs \\ %{}) do
+    user = if user == :new, do: user_fixture(), else: user
+
+    {:ok, alarm_settings} =
+      attrs
+      |> Enum.into(%{
+        goal: 2000,
+        interval_minutes: 60,
+        daily_start_time: ~T[08:00:00],
+        daily_end_time: ~T[20:00:00]
+      })
+      |> then(&DrinkWater.UserManagement.create_alarm_settings(user, &1))
+
+    alarm_settings
+  end
 end

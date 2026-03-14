@@ -16,6 +16,8 @@ defmodule DrinkWater.UserManagement.User do
     field :height, :decimal
     field :height_unit, Ecto.Enum, values: [:cm]
 
+    has_one :alarm_settings, DrinkWater.UserManagement.AlarmSettings
+
     timestamps(type: :utc_datetime)
   end
 

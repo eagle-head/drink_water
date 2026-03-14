@@ -23,7 +23,12 @@ defmodule DrinkWaterWeb.Router do
   scope "/api", DrinkWaterWeb do
     pipe_through :api
 
-    resources "/users", UserController, except: [:new, :edit]
+    resources "/users", UserController, except: [:new, :edit] do
+      get "/alarm_settings", AlarmSettingsController, :show
+      post "/alarm_settings", AlarmSettingsController, :create
+      put "/alarm_settings", AlarmSettingsController, :update
+      delete "/alarm_settings", AlarmSettingsController, :delete
+    end
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development

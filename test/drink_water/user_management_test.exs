@@ -232,4 +232,173 @@ defmodule DrinkWater.UserManagementTest do
       assert %Ecto.Changeset{} = UserManagement.change_user(user)
     end
   end
+
+  describe "alarm_settings" do
+    alias DrinkWater.UserManagement.AlarmSettings
+
+    import DrinkWater.UserManagementFixtures
+
+    @invalid_attrs %{
+      goal: nil,
+      interval_minutes: nil,
+      daily_start_time: nil,
+      daily_end_time: nil
+    }
+
+    test "get_alarm_settings_by_user/1 returns alarm settings for user" do
+      user = user_fixture()
+      alarm_settings = alarm_settings_fixture(user)
+      assert {:ok, found} = UserManagement.get_alarm_settings_by_user(user.id)
+      assert found.id == alarm_settings.id
+    end
+
+    test "get_alarm_settings_by_user/1 returns error when not found" do
+      user = user_fixture()
+      assert {:error, :not_found} = UserManagement.get_alarm_settings_by_user(user.id)
+    end
+
+    test "create_alarm_settings/2 with valid data creates alarm settings" do
+      user = user_fixture()
+
+      valid_attrs = %{
+        goal: 2000,
+        interval_minutes: 60,
+        daily_start_time: ~T[08:00:00],
+        daily_end_time: ~T[20:00:00]
+      }
+
+      assert {:ok, %AlarmSettings{} = alarm_settings} =
+               UserManagement.create_alarm_settings(user, valid_attrs)
+
+      assert alarm_settings.goal == 2000
+      assert alarm_settings.interval_minutes == 60
+      assert alarm_settings.daily_start_time == ~T[08:00:00]
+      assert alarm_settings.daily_end_time == ~T[20:00:00]
+      assert alarm_settings.user_id == user.id
+    end
+
+    test "create_alarm_settings/2 with invalid data returns error changeset" do
+      user = user_fixture()
+
+      assert {:error, %Ecto.Changeset{}} =
+               UserManagement.create_alarm_settings(user, @invalid_attrs)
+    end
+
+    test "create_alarm_settings/2 rejects duplicate for same user" do
+      user = user_fixture()
+      alarm_settings_fixture(user)
+
+      attrs = %{
+        goal: 3000,
+        interval_minutes: 30,
+        daily_start_time: ~T[07:00:00],
+        daily_end_time: ~T[21:00:00]
+      }
+
+      assert {:error, changeset} = UserManagement.create_alarm_settings(user, attrs)
+      assert changeset.errors[:user_id]
+    end
+
+    test "create_alarm_settings/2 rejects goal out of range" do
+      user = user_fixture()
+
+      attrs = %{
+        goal: 49,
+        interval_minutes: 60,
+        daily_start_time: ~T[08:00:00],
+        daily_end_time: ~T[20:00:00]
+      }
+
+      assert {:error, changeset} = UserManagement.create_alarm_settings(user, attrs)
+      assert changeset.errors[:goal]
+    end
+
+    test "create_alarm_settings/2 rejects interval_minutes out of range" do
+      user = user_fixture()
+
+      attrs = %{
+        goal: 2000,
+        interval_minutes: 14,
+        daily_start_time: ~T[08:00:00],
+        daily_end_time: ~T[20:00:00]
+      }
+
+      assert {:error, changeset} = UserManagement.create_alarm_settings(user, attrs)
+      assert changeset.errors[:interval_minutes]
+    end
+
+    test "create_alarm_settings/2 rejects times outside business hours" do
+      user = user_fixture()
+
+      attrs = %{
+        goal: 2000,
+        interval_minutes: 60,
+        daily_start_time: ~T[05:00:00],
+        daily_end_time: ~T[23:00:00]
+      }
+
+      assert {:error, changeset} = UserManagement.create_alarm_settings(user, attrs)
+      assert changeset.errors[:daily_start_time]
+      assert changeset.errors[:daily_end_time]
+    end
+
+    test "create_alarm_settings/2 rejects end time before start time" do
+      user = user_fixture()
+
+      attrs = %{
+        goal: 2000,
+        interval_minutes: 60,
+        daily_start_time: ~T[18:00:00],
+        daily_end_time: ~T[08:00:00]
+      }
+
+      assert {:error, changeset} = UserManagement.create_alarm_settings(user, attrs)
+      assert changeset.errors[:daily_end_time]
+    end
+
+    test "update_alarm_settings/2 with valid data updates alarm settings" do
+      alarm_settings = alarm_settings_fixture()
+
+      update_attrs = %{
+        goal: 3000,
+        interval_minutes: 30,
+        daily_start_time: ~T[07:00:00],
+        daily_end_time: ~T[21:00:00]
+      }
+
+      assert {:ok, %AlarmSettings{} = updated} =
+               UserManagement.update_alarm_settings(alarm_settings, update_attrs)
+
+      assert updated.goal == 3000
+      assert updated.interval_minutes == 30
+      assert updated.daily_start_time == ~T[07:00:00]
+      assert updated.daily_end_time == ~T[21:00:00]
+    end
+
+    test "update_alarm_settings/2 with invalid data returns error changeset" do
+      alarm_settings = alarm_settings_fixture()
+
+      assert {:error, %Ecto.Changeset{}} =
+               UserManagement.update_alarm_settings(alarm_settings, @invalid_attrs)
+
+      assert {:ok, ^alarm_settings} =
+               UserManagement.get_alarm_settings_by_user(alarm_settings.user_id)
+    end
+
+    test "delete_alarm_settings/1 deletes alarm settings" do
+      user = user_fixture()
+      alarm_settings = alarm_settings_fixture(user)
+      assert {:ok, %AlarmSettings{}} = UserManagement.delete_alarm_settings(alarm_settings)
+      assert {:error, :not_found} = UserManagement.get_alarm_settings_by_user(user.id)
+    end
+
+    test "alarm_settings are deleted when user is deleted" do
+      user = user_fixture()
+      alarm_settings = alarm_settings_fixture(user)
+      assert {:ok, _} = UserManagement.delete_user(user)
+
+      assert {:error, :not_found} =
+               UserManagement.get_alarm_settings_by_user(alarm_settings.user_id)
+    end
+  end
 end
