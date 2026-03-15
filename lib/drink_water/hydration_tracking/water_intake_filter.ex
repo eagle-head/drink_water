@@ -14,15 +14,16 @@ defmodule DrinkWater.HydrationTracking.WaterIntakeFilter do
     field :size, :integer, default: @default_size
   end
 
-  @optional_fields [:start_date, :end_date, :min_volume, :max_volume, :cursor, :size]
+  @cast_fields [:start_date, :end_date, :min_volume, :max_volume, :cursor, :size]
 
   def changeset(attrs) do
     %__MODULE__{}
-    |> cast(attrs, @optional_fields)
+    |> cast(attrs, @cast_fields)
     |> validate_required([:start_date, :end_date])
     |> validate_number(:size, greater_than_or_equal_to: 1, less_than_or_equal_to: @max_size)
     |> validate_number(:min_volume, greater_than_or_equal_to: 1, less_than_or_equal_to: 5000)
     |> validate_number(:max_volume, greater_than_or_equal_to: 1, less_than_or_equal_to: 5000)
+    |> validate_length(:cursor, max: 200)
     |> validate_date_range()
     |> validate_volume_range()
   end

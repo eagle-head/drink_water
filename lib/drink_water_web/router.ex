@@ -12,6 +12,7 @@ defmodule DrinkWaterWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
+    plug DrinkWaterWeb.Plugs.InputSanitizer
   end
 
   pipeline :rate_limit_user_api do
