@@ -155,6 +155,148 @@ defmodule DrinkWater.HydrationTrackingTest do
       assert length(Enum.uniq(all_ids)) == 3
     end
 
+    test "list_water_intakes/2 sorts by volume ascending" do
+      user = user_fixture()
+      water_intake_fixture(user.id, %{date_time_utc: ~U[2026-03-14 10:00:00Z], volume: 500})
+      water_intake_fixture(user.id, %{date_time_utc: ~U[2026-03-14 11:00:00Z], volume: 100})
+      water_intake_fixture(user.id, %{date_time_utc: ~U[2026-03-14 12:00:00Z], volume: 300})
+
+      params = Map.merge(@date_range, %{"sort_field" => "volume", "sort_direction" => "asc"})
+
+      assert {:ok, %{entries: entries}} =
+               HydrationTracking.list_water_intakes(user.id, params)
+
+      volumes = Enum.map(entries, & &1.volume)
+      assert volumes == [100, 300, 500]
+    end
+
+    test "list_water_intakes/2 sorts by date_time_utc ascending" do
+      user = user_fixture()
+      water_intake_fixture(user.id, %{date_time_utc: ~U[2026-03-14 12:00:00Z]})
+      water_intake_fixture(user.id, %{date_time_utc: ~U[2026-03-14 10:00:00Z]})
+      water_intake_fixture(user.id, %{date_time_utc: ~U[2026-03-14 11:00:00Z]})
+
+      params =
+        Map.merge(@date_range, %{"sort_field" => "date_time_utc", "sort_direction" => "asc"})
+
+      assert {:ok, %{entries: entries}} =
+               HydrationTracking.list_water_intakes(user.id, params)
+
+      times = Enum.map(entries, & &1.date_time_utc)
+
+      assert times == [
+               ~U[2026-03-14 10:00:00Z],
+               ~U[2026-03-14 11:00:00Z],
+               ~U[2026-03-14 12:00:00Z]
+             ]
+    end
+
+    test "list_water_intakes/2 defaults to date_time_utc descending" do
+      user = user_fixture()
+      water_intake_fixture(user.id, %{date_time_utc: ~U[2026-03-14 10:00:00Z]})
+      water_intake_fixture(user.id, %{date_time_utc: ~U[2026-03-14 12:00:00Z]})
+      water_intake_fixture(user.id, %{date_time_utc: ~U[2026-03-14 11:00:00Z]})
+
+      assert {:ok, %{entries: entries}} =
+               HydrationTracking.list_water_intakes(user.id, @date_range)
+
+      times = Enum.map(entries, & &1.date_time_utc)
+
+      assert times == [
+               ~U[2026-03-14 12:00:00Z],
+               ~U[2026-03-14 11:00:00Z],
+               ~U[2026-03-14 10:00:00Z]
+             ]
+    end
+
+    test "list_water_intakes/2 rejects invalid sort_field" do
+      user = user_fixture()
+      params = Map.merge(@date_range, %{"sort_field" => "email"})
+
+      assert {:error, %Ecto.Changeset{} = changeset} =
+               HydrationTracking.list_water_intakes(user.id, params)
+
+      assert changeset.errors[:sort_field]
+    end
+
+    test "list_water_intakes/2 rejects invalid sort_direction" do
+      user = user_fixture()
+      params = Map.merge(@date_range, %{"sort_direction" => "sideways"})
+
+      assert {:error, %Ecto.Changeset{} = changeset} =
+               HydrationTracking.list_water_intakes(user.id, params)
+
+      assert changeset.errors[:sort_direction]
+    end
+
+    test "list_water_intakes/2 paginates correctly with volume sort" do
+      user = user_fixture()
+
+      for {vol, i} <- [{300, 1}, {100, 2}, {500, 3}, {200, 4}] do
+        water_intake_fixture(user.id, %{
+          date_time_utc: DateTime.add(~U[2026-03-10 10:00:00Z], i * 3600, :second),
+          volume: vol
+        })
+      end
+
+      params =
+        Map.merge(@date_range, %{
+          "sort_field" => "volume",
+          "sort_direction" => "asc",
+          "size" => "2"
+        })
+
+      assert {:ok, %{entries: page1, next_cursor: cursor}} =
+               HydrationTracking.list_water_intakes(user.id, params)
+
+      assert length(page1) == 2
+      assert Enum.map(page1, & &1.volume) == [100, 200]
+      assert cursor != nil
+
+      params2 = Map.merge(params, %{"cursor" => cursor})
+
+      assert {:ok, %{entries: page2, next_cursor: cursor2}} =
+               HydrationTracking.list_water_intakes(user.id, params2)
+
+      assert length(page2) == 2
+      assert Enum.map(page2, & &1.volume) == [300, 500]
+      assert is_nil(cursor2)
+    end
+
+    test "list_water_intakes/2 rejects cursor from different sort_field" do
+      user = user_fixture()
+
+      for i <- 1..3 do
+        water_intake_fixture(user.id, %{
+          date_time_utc: DateTime.add(~U[2026-03-10 10:00:00Z], i * 3600, :second),
+          volume: i * 100
+        })
+      end
+
+      # Get cursor from volume sort
+      params =
+        Map.merge(@date_range, %{
+          "sort_field" => "volume",
+          "sort_direction" => "asc",
+          "size" => "2"
+        })
+
+      assert {:ok, %{next_cursor: cursor}} =
+               HydrationTracking.list_water_intakes(user.id, params)
+
+      assert cursor != nil
+
+      # Try to use it with date_time_utc sort — should fail
+      params2 =
+        Map.merge(@date_range, %{
+          "sort_field" => "date_time_utc",
+          "sort_direction" => "desc",
+          "cursor" => cursor
+        })
+
+      assert {:error, :bad_request} = HydrationTracking.list_water_intakes(user.id, params2)
+    end
+
     test "get_water_intake/2 returns water intake scoped by user" do
       user = user_fixture()
       water_intake = water_intake_fixture(user.id)

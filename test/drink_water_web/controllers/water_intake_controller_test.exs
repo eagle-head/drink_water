@@ -93,6 +93,25 @@ defmodule DrinkWaterWeb.WaterIntakeControllerTest do
       assert response["instance"] == "/api/users/#{user.id}/water_intakes"
     end
 
+    test "sorts by volume ascending", %{conn: conn, user: user} do
+      water_intake_fixture(user.id, %{date_time_utc: ~U[2026-03-14 10:00:00Z], volume: 500})
+      water_intake_fixture(user.id, %{date_time_utc: ~U[2026-03-14 11:00:00Z], volume: 100})
+
+      params = Map.merge(@date_range, %{"sort_field" => "volume", "sort_direction" => "asc"})
+      conn = get(conn, ~p"/api/users/#{user.id}/water_intakes", params)
+      response = json_response(conn, 200)
+      volumes = Enum.map(response["data"], & &1["volume"])
+      assert volumes == [100, 500]
+    end
+
+    test "returns 422 for invalid sort_field", %{conn: conn, user: user} do
+      params = Map.merge(@date_range, %{"sort_field" => "email"})
+      conn = get(conn, ~p"/api/users/#{user.id}/water_intakes", params)
+      response = json_response(conn, 422)
+      assert response["type"] == "https://www.drinkwater.com.br/validation-error"
+      assert response["errors"]["sort_field"]
+    end
+
     test "returns 404 in RFC 7807 format for nonexistent user", %{conn: conn} do
       conn = get(conn, ~p"/api/users/0/water_intakes", @date_range)
       response = json_response(conn, 404)

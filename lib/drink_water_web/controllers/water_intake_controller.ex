@@ -7,7 +7,7 @@ defmodule DrinkWaterWeb.WaterIntakeController do
 
   action_fallback DrinkWaterWeb.FallbackController
 
-  @filter_params ~w(start_date end_date min_volume max_volume cursor size)
+  @filter_params ~w(start_date end_date min_volume max_volume cursor size sort_field sort_direction)
 
   def index(conn, %{"user_id" => user_id} = params) do
     filter_params = Map.take(params, @filter_params)

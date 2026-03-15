@@ -4,6 +4,8 @@ defmodule DrinkWater.HydrationTracking.WaterIntakeFilter do
 
   @default_size 10
   @max_size 50
+  @allowed_sort_fields ~w(date_time_utc volume id)
+  @allowed_sort_directions ~w(asc desc)
 
   embedded_schema do
     field :start_date, :utc_datetime
@@ -12,9 +14,20 @@ defmodule DrinkWater.HydrationTracking.WaterIntakeFilter do
     field :max_volume, :integer
     field :cursor, :string
     field :size, :integer, default: @default_size
+    field :sort_field, :string, default: "date_time_utc"
+    field :sort_direction, :string, default: "desc"
   end
 
-  @cast_fields [:start_date, :end_date, :min_volume, :max_volume, :cursor, :size]
+  @cast_fields [
+    :start_date,
+    :end_date,
+    :min_volume,
+    :max_volume,
+    :cursor,
+    :size,
+    :sort_field,
+    :sort_direction
+  ]
 
   def changeset(attrs) do
     %__MODULE__{}
@@ -24,6 +37,8 @@ defmodule DrinkWater.HydrationTracking.WaterIntakeFilter do
     |> validate_number(:min_volume, greater_than_or_equal_to: 1, less_than_or_equal_to: 5000)
     |> validate_number(:max_volume, greater_than_or_equal_to: 1, less_than_or_equal_to: 5000)
     |> validate_length(:cursor, max: 200)
+    |> validate_inclusion(:sort_field, @allowed_sort_fields)
+    |> validate_inclusion(:sort_direction, @allowed_sort_directions)
     |> validate_date_range()
     |> validate_volume_range()
   end

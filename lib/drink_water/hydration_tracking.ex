@@ -23,14 +23,14 @@ defmodule DrinkWater.HydrationTracking do
            |> where(user_id: ^user_id)
            |> apply_date_filter(filter)
            |> apply_volume_filter(filter)
-           |> apply_cursor(filter.cursor) do
+           |> apply_cursor(filter) do
       entries =
         query
-        |> order_by(desc: :date_time_utc, desc: :id)
+        |> apply_sort(filter)
         |> limit(^(filter.size + 1))
         |> Repo.all()
 
-      {page, next_cursor} = build_page(entries, filter.size)
+      {page, next_cursor} = build_page(entries, filter)
       {:ok, %{entries: page, next_cursor: next_cursor}}
     end
   end
@@ -95,6 +95,13 @@ defmodule DrinkWater.HydrationTracking do
 
   # Query composition
 
+  defp apply_sort(query, %{sort_field: field, sort_direction: dir}) do
+    sort_field = String.to_existing_atom(field)
+    sort_dir = String.to_existing_atom(dir)
+
+    order_by(query, [w], [{^sort_dir, field(w, ^sort_field)}, {^sort_dir, w.id}])
+  end
+
   defp apply_date_filter(query, %{start_date: start_date, end_date: end_date})
        when not is_nil(start_date) and not is_nil(end_date) do
     query
@@ -123,46 +130,95 @@ defmodule DrinkWater.HydrationTracking do
 
   defp apply_volume_filter(query, _filter), do: query
 
-  # Keyset pagination: cursor encodes (date_time_utc|id)
-  defp apply_cursor(query, nil), do: {:ok, query}
+  # Keyset pagination: cursor encodes (sort_value|id)
+  defp apply_cursor(query, %{cursor: nil}), do: {:ok, query}
 
-  defp apply_cursor(query, cursor) do
+  defp apply_cursor(query, %{cursor: cursor, sort_field: field, sort_direction: dir}) do
+    sort_field = String.to_existing_atom(field)
+
     case decode_cursor(cursor) do
-      {:ok, date_time, id} ->
-        {:ok,
-         where(
-           query,
-           [w],
-           w.date_time_utc < ^date_time or
-             (w.date_time_utc == ^date_time and w.id < ^id)
-         )}
+      {:ok, cursor_value, cursor_id, cursor_field} when cursor_field == field ->
+        filtered =
+          if dir == "desc" do
+            where(
+              query,
+              [w],
+              field(w, ^sort_field) < ^cursor_value or
+                (field(w, ^sort_field) == ^cursor_value and w.id < ^cursor_id)
+            )
+          else
+            where(
+              query,
+              [w],
+              field(w, ^sort_field) > ^cursor_value or
+                (field(w, ^sort_field) == ^cursor_value and w.id > ^cursor_id)
+            )
+          end
+
+        {:ok, filtered}
+
+      {:ok, _cursor_value, _cursor_id, _wrong_field} ->
+        {:error, :bad_request}
 
       :error ->
         {:error, :bad_request}
     end
   end
 
-  defp build_page(entries, size) when length(entries) > size do
+  defp build_page(entries, %{size: size, sort_field: field} = _filter)
+       when length(entries) > size do
     page = Enum.take(entries, size)
     last = List.last(page)
-    {page, encode_cursor(last.date_time_utc, last.id)}
+    sort_value = Map.get(last, String.to_existing_atom(field))
+    {page, encode_cursor(sort_value, last.id, field)}
   end
 
-  defp build_page(entries, _size), do: {entries, nil}
+  defp build_page(entries, _filter), do: {entries, nil}
 
-  defp encode_cursor(date_time_utc, id) do
-    "#{DateTime.to_iso8601(date_time_utc)}|#{id}"
+  defp encode_cursor(%DateTime{} = value, id, sort_field) do
+    "#{sort_field}:#{DateTime.to_iso8601(value)}|#{id}"
+    |> Base.url_encode64(padding: false)
+  end
+
+  defp encode_cursor(value, id, sort_field) do
+    "#{sort_field}:#{value}|#{id}"
     |> Base.url_encode64(padding: false)
   end
 
   defp decode_cursor(cursor) do
     with {:ok, decoded} <- Base.url_decode64(cursor, padding: false),
-         [datetime_str, id_str] <- String.split(decoded, "|", parts: 2),
-         {:ok, date_time, _offset} <- DateTime.from_iso8601(datetime_str),
-         {id, ""} <- Integer.parse(id_str) do
-      {:ok, date_time, id}
+         [value_str, id_str] <- String.split(decoded, "|", parts: 2),
+         {id, ""} <- Integer.parse(id_str),
+         {cursor_field, value_str} <- split_field_value(value_str) do
+      cursor_value = parse_cursor_value(value_str)
+
+      if cursor_value do
+        {:ok, cursor_value, id, cursor_field}
+      else
+        :error
+      end
     else
       _ -> :error
+    end
+  end
+
+  defp split_field_value(str) do
+    case String.split(str, ":", parts: 2) do
+      [field, value] -> {field, value}
+      _ -> :error
+    end
+  end
+
+  defp parse_cursor_value(value_str) do
+    case DateTime.from_iso8601(value_str) do
+      {:ok, datetime, _offset} ->
+        datetime
+
+      _ ->
+        case Integer.parse(value_str) do
+          {int, ""} -> int
+          _ -> nil
+        end
     end
   end
 end
