@@ -240,6 +240,76 @@ defmodule DrinkWater.UserManagementTest do
       assert changeset.errors[:height_unit]
     end
 
+    test "create_user/1 rejects first_name with numbers" do
+      attrs = %{
+        email: "num@example.com",
+        first_name: "John123",
+        last_name: "Doe",
+        birth_date: ~D[1990-01-01],
+        biological_sex: :male,
+        weight: "75.0",
+        weight_unit: :kg,
+        height: "175.0",
+        height_unit: :cm
+      }
+
+      assert {:error, changeset} = UserManagement.create_user(attrs)
+      assert changeset.errors[:first_name]
+    end
+
+    test "create_user/1 rejects last_name with special characters" do
+      attrs = %{
+        email: "spec@example.com",
+        first_name: "John",
+        last_name: "Doe<script>",
+        birth_date: ~D[1990-01-01],
+        biological_sex: :male,
+        weight: "75.0",
+        weight_unit: :kg,
+        height: "175.0",
+        height_unit: :cm
+      }
+
+      assert {:error, changeset} = UserManagement.create_user(attrs)
+      assert changeset.errors[:last_name]
+    end
+
+    test "create_user/1 accepts accented and compound names" do
+      attrs = %{
+        email: "accent@example.com",
+        first_name: "José",
+        last_name: "O'Brien-Silva",
+        birth_date: ~D[1990-01-01],
+        biological_sex: :male,
+        weight: "75.0",
+        weight_unit: :kg,
+        height: "175.0",
+        height_unit: :cm
+      }
+
+      assert {:ok, user} = UserManagement.create_user(attrs)
+      assert user.first_name == "José"
+      assert user.last_name == "O'Brien-Silva"
+    end
+
+    test "create_user/1 accepts names with spaces" do
+      attrs = %{
+        email: "space@example.com",
+        first_name: "Ana Maria",
+        last_name: "Da Silva",
+        birth_date: ~D[1990-01-01],
+        biological_sex: :male,
+        weight: "75.0",
+        weight_unit: :kg,
+        height: "175.0",
+        height_unit: :cm
+      }
+
+      assert {:ok, user} = UserManagement.create_user(attrs)
+      assert user.first_name == "Ana Maria"
+      assert user.last_name == "Da Silva"
+    end
+
     test "change_user/1 returns a user changeset" do
       user = user_fixture()
       assert %Ecto.Changeset{} = UserManagement.change_user(user)

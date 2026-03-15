@@ -4,6 +4,7 @@ defmodule DrinkWater.UserManagement.User do
 
   @min_age 13
   @max_age 99
+  @name_format ~r/^[\p{L}](?:[\p{L}'\s-]*[\p{L}'])?$/u
 
   schema "users" do
     field :email, :string
@@ -42,6 +43,12 @@ defmodule DrinkWater.UserManagement.User do
     |> validate_length(:email, max: 255)
     |> validate_length(:first_name, min: 2, max: 50)
     |> validate_length(:last_name, min: 2, max: 50)
+    |> validate_format(:first_name, @name_format,
+      message: "must contain only letters, spaces, hyphens, or apostrophes"
+    )
+    |> validate_format(:last_name, @name_format,
+      message: "must contain only letters, spaces, hyphens, or apostrophes"
+    )
     |> validate_number(:weight, greater_than_or_equal_to: 45, less_than_or_equal_to: 500)
     |> validate_number(:height, greater_than_or_equal_to: 50, less_than_or_equal_to: 250)
     |> validate_birth_date()

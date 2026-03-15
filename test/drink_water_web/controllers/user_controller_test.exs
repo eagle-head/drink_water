@@ -85,6 +85,15 @@ defmodule DrinkWaterWeb.UserControllerTest do
       assert response["errors"] != %{}
     end
 
+    test "returns 422 when name contains invalid characters", %{conn: conn} do
+      invalid_name_attrs = %{@create_attrs | first_name: "John123", last_name: "Doe<>"}
+      conn = post(conn, ~p"/api/users", user: invalid_name_attrs)
+      response = json_response(conn, 422)
+      assert response["type"] == "https://www.drinkwater.com.br/validation-error"
+      assert response["errors"]["first_name"]
+      assert response["errors"]["last_name"]
+    end
+
     test "returns 409 when creating user with duplicate email", %{conn: conn} do
       post(conn, ~p"/api/users", user: @create_attrs)
       conn = post(conn, ~p"/api/users", user: @create_attrs)
