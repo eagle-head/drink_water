@@ -2,10 +2,13 @@ defmodule DrinkWaterWeb.WaterIntakeJSON do
   alias DrinkWater.HydrationTracking.WaterIntake
 
   @doc """
-  Renders a list of water_intakes.
+  Renders a paginated list of water_intakes.
   """
-  def index(%{water_intakes: water_intakes}) do
-    %{data: for(water_intake <- water_intakes, do: data(water_intake))}
+  def index(%{page: %{entries: entries, next_cursor: next_cursor}}) do
+    %{
+      data: for(water_intake <- entries, do: data(water_intake)),
+      next_cursor: next_cursor
+    }
   end
 
   @doc """

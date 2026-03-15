@@ -7,10 +7,14 @@ defmodule DrinkWaterWeb.WaterIntakeController do
 
   action_fallback DrinkWaterWeb.FallbackController
 
-  def index(conn, %{"user_id" => user_id}) do
-    with {:ok, user} <- UserManagement.get_user(user_id) do
-      water_intakes = HydrationTracking.list_water_intakes(user.id)
-      render(conn, :index, water_intakes: water_intakes)
+  @filter_params ~w(start_date end_date min_volume max_volume cursor size)
+
+  def index(conn, %{"user_id" => user_id} = params) do
+    filter_params = Map.take(params, @filter_params)
+
+    with {:ok, user} <- UserManagement.get_user(user_id),
+         {:ok, page} <- HydrationTracking.list_water_intakes(user.id, filter_params) do
+      render(conn, :index, page: page)
     end
   end
 

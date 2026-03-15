@@ -11,17 +11,148 @@ defmodule DrinkWater.HydrationTrackingTest do
 
     @invalid_attrs %{date_time_utc: nil, volume: nil, volume_unit: nil}
 
-    test "list_water_intakes/1 returns all water intakes for a user" do
+    @date_range %{
+      "start_date" => "2026-03-01T00:00:00Z",
+      "end_date" => "2026-03-31T23:59:59Z"
+    }
+
+    test "list_water_intakes/2 returns all water intakes for a user" do
       user = user_fixture()
       water_intake = water_intake_fixture(user.id)
-      assert HydrationTracking.list_water_intakes(user.id) == [water_intake]
+
+      assert {:ok, %{entries: [^water_intake], next_cursor: nil}} =
+               HydrationTracking.list_water_intakes(user.id, @date_range)
     end
 
-    test "list_water_intakes/1 does not return other users intakes" do
+    test "list_water_intakes/2 does not return other users intakes" do
       user1 = user_fixture()
       user2 = user_fixture()
       water_intake_fixture(user1.id)
-      assert HydrationTracking.list_water_intakes(user2.id) == []
+
+      assert {:ok, %{entries: [], next_cursor: nil}} =
+               HydrationTracking.list_water_intakes(user2.id, @date_range)
+    end
+
+    test "list_water_intakes/2 filters by date range" do
+      user = user_fixture()
+      water_intake_fixture(user.id, %{date_time_utc: ~U[2026-03-05 10:00:00Z]})
+      water_intake_fixture(user.id, %{date_time_utc: ~U[2026-03-10 10:00:00Z]})
+
+      params = %{"start_date" => "2026-03-08T00:00:00Z", "end_date" => "2026-03-14T23:59:59Z"}
+      assert {:ok, %{entries: entries}} = HydrationTracking.list_water_intakes(user.id, params)
+      assert length(entries) == 1
+      assert hd(entries).date_time_utc == ~U[2026-03-10 10:00:00Z]
+    end
+
+    test "list_water_intakes/2 filters by volume range" do
+      user = user_fixture()
+      water_intake_fixture(user.id, %{date_time_utc: ~U[2026-03-14 10:00:00Z], volume: 100})
+      water_intake_fixture(user.id, %{date_time_utc: ~U[2026-03-14 11:00:00Z], volume: 500})
+
+      params = Map.merge(@date_range, %{"min_volume" => "200", "max_volume" => "600"})
+      assert {:ok, %{entries: entries}} = HydrationTracking.list_water_intakes(user.id, params)
+      assert length(entries) == 1
+      assert hd(entries).volume == 500
+    end
+
+    test "list_water_intakes/2 filters by min_volume only" do
+      user = user_fixture()
+      water_intake_fixture(user.id, %{date_time_utc: ~U[2026-03-14 10:00:00Z], volume: 100})
+      water_intake_fixture(user.id, %{date_time_utc: ~U[2026-03-14 11:00:00Z], volume: 500})
+
+      params = Map.merge(@date_range, %{"min_volume" => "200"})
+      assert {:ok, %{entries: entries}} = HydrationTracking.list_water_intakes(user.id, params)
+      assert length(entries) == 1
+      assert hd(entries).volume == 500
+    end
+
+    test "list_water_intakes/2 filters by max_volume only" do
+      user = user_fixture()
+      water_intake_fixture(user.id, %{date_time_utc: ~U[2026-03-14 10:00:00Z], volume: 100})
+      water_intake_fixture(user.id, %{date_time_utc: ~U[2026-03-14 11:00:00Z], volume: 500})
+
+      params = Map.merge(@date_range, %{"max_volume" => "200"})
+      assert {:ok, %{entries: entries}} = HydrationTracking.list_water_intakes(user.id, params)
+      assert length(entries) == 1
+      assert hd(entries).volume == 100
+    end
+
+    test "list_water_intakes/2 paginates with cursor" do
+      user = user_fixture()
+
+      for i <- 1..3 do
+        water_intake_fixture(user.id, %{
+          date_time_utc: DateTime.add(~U[2026-03-10 10:00:00Z], i * 3600, :second)
+        })
+      end
+
+      params = Map.merge(@date_range, %{"size" => "2"})
+
+      assert {:ok, %{entries: page1, next_cursor: cursor}} =
+               HydrationTracking.list_water_intakes(user.id, params)
+
+      assert length(page1) == 2
+      assert cursor != nil
+
+      params2 = Map.merge(@date_range, %{"size" => "2", "cursor" => cursor})
+
+      assert {:ok, %{entries: page2, next_cursor: nil}} =
+               HydrationTracking.list_water_intakes(user.id, params2)
+
+      assert length(page2) == 1
+    end
+
+    test "list_water_intakes/2 returns error when max_volume < min_volume" do
+      user = user_fixture()
+      params = Map.merge(@date_range, %{"min_volume" => "500", "max_volume" => "100"})
+      assert {:error, changeset} = HydrationTracking.list_water_intakes(user.id, params)
+      assert changeset.errors[:max_volume]
+    end
+
+    test "list_water_intakes/2 returns error for invalid filter params" do
+      user = user_fixture()
+      params = %{"start_date" => "2026-03-31T00:00:00Z", "end_date" => "2026-03-01T00:00:00Z"}
+      assert {:error, %Ecto.Changeset{}} = HydrationTracking.list_water_intakes(user.id, params)
+    end
+
+    test "list_water_intakes/2 returns error when required dates are missing" do
+      user = user_fixture()
+      assert {:error, %Ecto.Changeset{}} = HydrationTracking.list_water_intakes(user.id, %{})
+    end
+
+    test "list_water_intakes/2 returns error for invalid cursor" do
+      user = user_fixture()
+      params = Map.merge(@date_range, %{"cursor" => "invalid-cursor"})
+      assert {:error, :bad_request} = HydrationTracking.list_water_intakes(user.id, params)
+    end
+
+    test "list_water_intakes/2 paginates correctly with close timestamps (id tie-breaker)" do
+      user = user_fixture()
+
+      for i <- 1..3 do
+        water_intake_fixture(user.id, %{
+          date_time_utc: DateTime.add(~U[2026-03-10 10:00:00Z], i, :second),
+          volume: i * 100
+        })
+      end
+
+      params = Map.merge(@date_range, %{"size" => "2"})
+
+      assert {:ok, %{entries: page1, next_cursor: cursor}} =
+               HydrationTracking.list_water_intakes(user.id, params)
+
+      assert length(page1) == 2
+      assert cursor != nil
+
+      params2 = Map.merge(@date_range, %{"size" => "2", "cursor" => cursor})
+
+      assert {:ok, %{entries: page2, next_cursor: nil}} =
+               HydrationTracking.list_water_intakes(user.id, params2)
+
+      assert length(page2) == 1
+
+      all_ids = Enum.map(page1 ++ page2, & &1.id)
+      assert length(Enum.uniq(all_ids)) == 3
     end
 
     test "get_water_intake/2 returns water intake scoped by user" do
