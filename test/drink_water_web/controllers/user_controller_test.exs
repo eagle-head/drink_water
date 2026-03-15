@@ -70,9 +70,14 @@ defmodule DrinkWaterWeb.UserControllerTest do
              } = json_response(conn, 200)["data"]
     end
 
-    test "renders errors when data is invalid", %{conn: conn} do
+    test "renders errors in RFC 7807 format when data is invalid", %{conn: conn} do
       conn = post(conn, ~p"/api/users", user: @invalid_attrs)
-      assert json_response(conn, 422)["errors"] != %{}
+      response = json_response(conn, 422)
+      assert response["type"] == "about:blank"
+      assert response["title"] == "Unprocessable Content"
+      assert response["status"] == 422
+      assert response["detail"] == "Validation failed"
+      assert response["errors"] != %{}
     end
   end
 
@@ -99,9 +104,13 @@ defmodule DrinkWaterWeb.UserControllerTest do
              } = json_response(conn, 200)["data"]
     end
 
-    test "renders errors when data is invalid", %{conn: conn, user: user} do
+    test "renders errors in RFC 7807 format when data is invalid", %{conn: conn, user: user} do
       conn = put(conn, ~p"/api/users/#{user}", user: @invalid_attrs)
-      assert json_response(conn, 422)["errors"] != %{}
+      response = json_response(conn, 422)
+      assert response["type"] == "about:blank"
+      assert response["status"] == 422
+      assert response["detail"] == "Validation failed"
+      assert response["errors"] != %{}
     end
   end
 
@@ -118,19 +127,27 @@ defmodule DrinkWaterWeb.UserControllerTest do
   end
 
   describe "not found" do
-    test "show returns 404 for nonexistent user", %{conn: conn} do
+    test "show returns 404 in RFC 7807 format for nonexistent user", %{conn: conn} do
       conn = get(conn, ~p"/api/users/0")
-      assert json_response(conn, 404)
+      assert {"content-type", "application/problem+json; charset=utf-8"} in conn.resp_headers
+      response = json_response(conn, 404)
+      assert response["type"] == "about:blank"
+      assert response["title"] == "Not Found"
+      assert response["status"] == 404
     end
 
-    test "update returns 404 for nonexistent user", %{conn: conn} do
+    test "update returns 404 in RFC 7807 format for nonexistent user", %{conn: conn} do
       conn = put(conn, ~p"/api/users/0", user: @update_attrs)
-      assert json_response(conn, 404)
+      response = json_response(conn, 404)
+      assert response["type"] == "about:blank"
+      assert response["status"] == 404
     end
 
-    test "delete returns 404 for nonexistent user", %{conn: conn} do
+    test "delete returns 404 in RFC 7807 format for nonexistent user", %{conn: conn} do
       conn = delete(conn, ~p"/api/users/0")
-      assert json_response(conn, 404)
+      response = json_response(conn, 404)
+      assert response["type"] == "about:blank"
+      assert response["status"] == 404
     end
 
     test "show returns 404 for non-integer id", %{conn: conn} do
