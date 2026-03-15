@@ -105,6 +105,27 @@ defmodule DrinkWater.UserManagement do
   end
 
   @doc """
+  Deletes a user by ID. Idempotent — returns `:ok` whether the user
+  existed or not. Accepts integer or string ID.
+  """
+  def delete_user_by_id(id) when is_integer(id) do
+    User
+    |> where(id: ^id)
+    |> Repo.delete_all()
+
+    :ok
+  end
+
+  def delete_user_by_id(id) when is_binary(id) do
+    case Integer.parse(id) do
+      {int_id, ""} -> delete_user_by_id(int_id)
+      _ -> :ok
+    end
+  end
+
+  def delete_user_by_id(_), do: :ok
+
+  @doc """
   Returns an `%Ecto.Changeset{}` for tracking user changes.
 
   ## Examples

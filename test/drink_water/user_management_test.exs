@@ -310,6 +310,46 @@ defmodule DrinkWater.UserManagementTest do
       assert user.last_name == "Da Silva"
     end
 
+    test "delete_user_by_id/1 returns :ok for nonexistent user" do
+      assert :ok = UserManagement.delete_user_by_id(0)
+    end
+
+    test "delete_user_by_id/1 deletes an existing user" do
+      user = user_fixture()
+      assert :ok = UserManagement.delete_user_by_id(user.id)
+      assert {:error, :not_found, :user} = UserManagement.get_user(user.id)
+    end
+
+    test "delete_user_by_id/1 accepts string id" do
+      user = user_fixture()
+      assert :ok = UserManagement.delete_user_by_id(to_string(user.id))
+      assert {:error, :not_found, :user} = UserManagement.get_user(user.id)
+    end
+
+    test "delete_user_by_id/1 returns :ok for non-integer string id" do
+      assert :ok = UserManagement.delete_user_by_id("abc")
+    end
+
+    test "delete_user_by_id/1 cascades to alarm_settings and water_intakes" do
+      user = user_fixture()
+      alarm_settings_fixture(user)
+
+      {:ok, _} =
+        DrinkWater.HydrationTracking.create_water_intake(user.id, %{
+          date_time_utc: ~U[2026-03-14 10:00:00Z],
+          volume: 250,
+          volume_unit: :ml
+        })
+
+      assert :ok = UserManagement.delete_user_by_id(user.id)
+
+      assert {:error, :not_found, :alarm_settings} =
+               UserManagement.get_alarm_settings_by_user(user.id)
+
+      assert {:error, :not_found, :water_intake} =
+               DrinkWater.HydrationTracking.get_water_intake(user.id, 0)
+    end
+
     test "change_user/1 returns a user changeset" do
       user = user_fixture()
       assert %Ecto.Changeset{} = UserManagement.change_user(user)

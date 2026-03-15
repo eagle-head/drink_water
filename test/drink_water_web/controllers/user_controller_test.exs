@@ -184,14 +184,9 @@ defmodule DrinkWaterWeb.UserControllerTest do
       assert response["instance"] == "/api/users/0"
     end
 
-    test "delete returns 404 in RFC 7807 format for nonexistent user", %{conn: conn} do
+    test "delete returns 204 for nonexistent user (idempotent)", %{conn: conn} do
       conn = delete(conn, ~p"/api/users/0")
-      response = json_response(conn, 404)
-      assert response["type"] == "https://www.drinkwater.com.br/user-not-found"
-      assert response["title"] == "Not Found"
-      assert response["status"] == 404
-      assert response["detail"] == "The requested user account was not found."
-      assert response["instance"] == "/api/users/0"
+      assert response(conn, 204)
     end
 
     test "show returns 404 for non-integer id", %{conn: conn} do

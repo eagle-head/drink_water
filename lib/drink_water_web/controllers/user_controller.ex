@@ -34,9 +34,7 @@ defmodule DrinkWaterWeb.UserController do
   end
 
   def delete(conn, %{"id" => id}) do
-    with {:ok, user} <- UserManagement.get_user(id),
-         {:ok, %User{}} <- UserManagement.delete_user(user) do
-      send_resp(conn, :no_content, "")
-    end
+    :ok = UserManagement.delete_user_by_id(id)
+    send_resp(conn, :no_content, "")
   end
 end
