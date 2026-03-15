@@ -132,6 +132,11 @@ defmodule DrinkWaterWeb.UserControllerTest do
       conn = delete(conn, ~p"/api/users/0")
       assert json_response(conn, 404)
     end
+
+    test "show returns 404 for non-integer id", %{conn: conn} do
+      conn = get(conn, ~p"/api/users/abc")
+      assert json_response(conn, 404)
+    end
   end
 
   defp create_user(_) do

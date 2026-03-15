@@ -35,12 +35,21 @@ defmodule DrinkWater.UserManagement do
       {:error, :not_found}
 
   """
-  def get_user(id) do
+  def get_user(id) when is_integer(id) do
     case Repo.get(User, id) do
       nil -> {:error, :not_found}
       user -> {:ok, user}
     end
   end
+
+  def get_user(id) when is_binary(id) do
+    case Integer.parse(id) do
+      {int_id, ""} -> get_user(int_id)
+      _ -> {:error, :not_found}
+    end
+  end
+
+  def get_user(_), do: {:error, :not_found}
 
   @doc """
   Creates a user.

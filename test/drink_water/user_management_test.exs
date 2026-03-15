@@ -35,6 +35,20 @@ defmodule DrinkWater.UserManagementTest do
       assert {:error, :not_found} = UserManagement.get_user(0)
     end
 
+    test "get_user/1 returns error for non-integer string id" do
+      assert {:error, :not_found} = UserManagement.get_user("abc")
+    end
+
+    test "get_user/1 accepts string integer id" do
+      user = user_fixture()
+      assert {:ok, found} = UserManagement.get_user(to_string(user.id))
+      assert found == user
+    end
+
+    test "get_user/1 returns error for non-string non-integer id" do
+      assert {:error, :not_found} = UserManagement.get_user(nil)
+    end
+
     test "create_user/1 with valid data creates a user" do
       valid_attrs = %{
         email: "valid@example.com",

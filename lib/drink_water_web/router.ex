@@ -28,6 +28,8 @@ defmodule DrinkWaterWeb.Router do
       post "/alarm_settings", AlarmSettingsController, :create
       put "/alarm_settings", AlarmSettingsController, :update
       delete "/alarm_settings", AlarmSettingsController, :delete
+
+      resources "/water_intakes", WaterIntakeController, except: [:new, :edit]
     end
   end
 
