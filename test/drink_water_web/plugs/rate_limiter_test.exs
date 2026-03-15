@@ -57,6 +57,27 @@ defmodule DrinkWaterWeb.Plugs.RateLimiterTest do
     end
   end
 
+  describe "water intake search has separate rate limit" do
+    test "search has lower limit than CRUD", %{conn: conn} do
+      user = user_fixture()
+
+      date_range = %{
+        "start_date" => "2026-03-01T00:00:00Z",
+        "end_date" => "2026-03-31T23:59:59Z"
+      }
+
+      # Exhaust search limit (20 requests)
+      for _ <- 1..20 do
+        conn = get(conn, ~p"/api/users/#{user.id}/water_intakes", date_range)
+        assert conn.status == 200
+      end
+
+      # 21st search request should be rate limited
+      conn = get(conn, ~p"/api/users/#{user.id}/water_intakes", date_range)
+      assert conn.status == 429
+    end
+  end
+
   describe "separate limits per endpoint group" do
     test "water intake API has independent limit from user API", %{conn: conn} do
       user = user_fixture()

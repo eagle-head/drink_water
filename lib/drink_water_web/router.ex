@@ -26,6 +26,12 @@ defmodule DrinkWaterWeb.Router do
     plug DrinkWaterWeb.Plugs.RateLimiter, key_prefix: "waterintake-api", limit: 60
   end
 
+  pipeline :rate_limit_water_intake_search do
+    plug DrinkWaterWeb.Plugs.RateLimiter,
+      key_prefix: "waterintake-search",
+      limit: 20
+  end
+
   scope "/", DrinkWaterWeb do
     pipe_through :browser
 
@@ -49,7 +55,13 @@ defmodule DrinkWaterWeb.Router do
     scope "/users/:user_id" do
       pipe_through :rate_limit_water_intake_api
 
-      resources "/water_intakes", WaterIntakeController, except: [:new, :edit]
+      resources "/water_intakes", WaterIntakeController, except: [:new, :edit, :index]
+    end
+
+    scope "/users/:user_id" do
+      pipe_through :rate_limit_water_intake_search
+
+      get "/water_intakes", WaterIntakeController, :index
     end
   end
 
