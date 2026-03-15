@@ -110,3 +110,58 @@ msgstr ""
 
 msgid "must be equal to %{number}"
 msgstr ""
+
+#: lib/drink_water_web/problem_detail.ex:15
+#, elixir-autogen, elixir-format
+msgid "A user with this email address already exists."
+msgstr ""
+
+#: lib/drink_water_web/problem_detail.ex:17
+#, elixir-autogen, elixir-format
+msgid "A water intake record already exists for the specified date and time."
+msgstr ""
+
+#: lib/drink_water_web/problem_detail.ex:16
+#, elixir-autogen, elixir-format
+msgid "Alarm settings already exist for this user."
+msgstr ""
+
+#: lib/drink_water_web/problem_detail.ex:18
+#, elixir-autogen, elixir-format
+msgid "An invalid argument was provided."
+msgstr ""
+
+#: lib/drink_water_web/problem_detail.ex:28
+#, elixir-autogen, elixir-format
+msgid "An unexpected error occurred. Please try again later or contact support."
+msgstr ""
+
+#: lib/drink_water_web/problem_detail.ex:26
+#, elixir-autogen, elixir-format
+msgid "One or more fields are invalid. Please correct them and try again."
+msgstr ""
+
+#: lib/drink_water_web/problem_detail.ex:13
+#, elixir-autogen, elixir-format
+msgid "The requested alarm settings were not found."
+msgstr ""
+
+#: lib/drink_water_web/problem_detail.ex:12
+#, elixir-autogen, elixir-format
+msgid "The requested user account was not found."
+msgstr ""
+
+#: lib/drink_water_web/problem_detail.ex:14
+#, elixir-autogen, elixir-format
+msgid "The requested water intake record was not found."
+msgstr ""
+
+#: lib/drink_water_web/problem_detail.ex:25
+#, elixir-autogen, elixir-format
+msgid "Too many requests. Please wait before trying again."
+msgstr ""
+
+#: lib/drink_water_web/problem_detail.ex:20
+#, elixir-autogen, elixir-format
+msgid "Unable to process the request. Please check that your data is properly formatted."
+msgstr ""

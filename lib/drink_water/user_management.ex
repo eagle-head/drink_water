@@ -24,7 +24,7 @@ defmodule DrinkWater.UserManagement do
   @doc """
   Gets a single user.
 
-  Returns `{:ok, %User{}}` if the user exists, `{:error, :not_found}` otherwise.
+  Returns `{:ok, %User{}}` if the user exists, `{:error, :not_found, :user}` otherwise.
 
   ## Examples
 
@@ -32,12 +32,12 @@ defmodule DrinkWater.UserManagement do
       {:ok, %User{}}
 
       iex> get_user(456)
-      {:error, :not_found}
+      {:error, :not_found, :user}
 
   """
   def get_user(id) when is_integer(id) do
     case Repo.get(User, id) do
-      nil -> {:error, :not_found}
+      nil -> {:error, :not_found, :user}
       user -> {:ok, user}
     end
   end
@@ -45,11 +45,11 @@ defmodule DrinkWater.UserManagement do
   def get_user(id) when is_binary(id) do
     case Integer.parse(id) do
       {int_id, ""} -> get_user(int_id)
-      _ -> {:error, :not_found}
+      _ -> {:error, :not_found, :user}
     end
   end
 
-  def get_user(_), do: {:error, :not_found}
+  def get_user(_), do: {:error, :not_found, :user}
 
   @doc """
   Creates a user.
@@ -67,6 +67,7 @@ defmodule DrinkWater.UserManagement do
     %User{}
     |> User.changeset(attrs)
     |> Repo.insert()
+    |> maybe_conflict(:user, :email)
   end
 
   @doc """
@@ -121,11 +122,11 @@ defmodule DrinkWater.UserManagement do
   @doc """
   Gets the alarm settings for a user.
 
-  Returns `{:ok, %AlarmSettings{}}` or `{:error, :not_found}`.
+  Returns `{:ok, %AlarmSettings{}}` or `{:error, :not_found, :alarm_settings}`.
   """
   def get_alarm_settings_by_user(user_id) do
     case Repo.get_by(AlarmSettings, user_id: user_id) do
-      nil -> {:error, :not_found}
+      nil -> {:error, :not_found, :alarm_settings}
       alarm_settings -> {:ok, alarm_settings}
     end
   end
@@ -140,6 +141,7 @@ defmodule DrinkWater.UserManagement do
     |> Ecto.build_assoc(:alarm_settings)
     |> AlarmSettings.changeset(attrs)
     |> Repo.insert()
+    |> maybe_conflict(:alarm_settings, :user_id)
   end
 
   @doc """
@@ -156,5 +158,22 @@ defmodule DrinkWater.UserManagement do
   """
   def delete_alarm_settings(%AlarmSettings{} = alarm_settings) do
     Repo.delete(alarm_settings)
+  end
+
+  defp maybe_conflict({:error, %Ecto.Changeset{} = changeset}, resource, field) do
+    if has_unique_constraint_error?(changeset, field) do
+      {:error, :conflict, resource}
+    else
+      {:error, changeset}
+    end
+  end
+
+  defp maybe_conflict(result, _resource, _field), do: result
+
+  defp has_unique_constraint_error?(changeset, field) do
+    Enum.any?(changeset.errors, fn
+      {^field, {_msg, opts}} -> opts[:constraint] == :unique
+      _ -> false
+    end)
   end
 end

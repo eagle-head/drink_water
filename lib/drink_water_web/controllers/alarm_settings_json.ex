@@ -9,12 +9,12 @@ defmodule DrinkWaterWeb.AlarmSettingsJSON do
   end
 
   defp data(%AlarmSettings{} = alarm_settings) do
-    %{
+    Jason.OrderedObject.new(
       id: alarm_settings.id,
       goal: alarm_settings.goal,
       interval_minutes: alarm_settings.interval_minutes,
       daily_start_time: alarm_settings.daily_start_time,
       daily_end_time: alarm_settings.daily_end_time
-    }
+    )
   end
 end

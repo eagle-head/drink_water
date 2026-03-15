@@ -30,10 +30,11 @@ defmodule DrinkWaterWeb.Plugs.RateLimiterTest do
 
       conn = get(conn, ~p"/api/users/#{user.id}")
       response = json_response(conn, 429)
-      assert response["type"] == "about:blank"
+      assert response["type"] == "https://www.drinkwater.com.br/rate-limit-exceeded"
       assert response["title"] == "Too Many Requests"
       assert response["status"] == 429
-      assert response["detail"] == "Rate limit exceeded"
+      assert response["detail"] == "Too many requests. Please wait before trying again."
+      assert response["instance"] != nil
       assert {"retry-after", _} = List.keyfind(conn.resp_headers, "retry-after", 0)
       assert {"content-type", "application/problem+json; charset=utf-8"} in conn.resp_headers
     end

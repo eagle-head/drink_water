@@ -22,7 +22,7 @@ config :drink_water, DrinkWaterWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}],
   check_origin: false,
   code_reloader: true,
-  debug_errors: true,
+  debug_errors: false,
   secret_key_base: "WrDaT0xc+SvmZD/4pKiOvLDvOxtoqpviH77jWzt5MsTKqmBqUhADcm18cP1yJmwA",
   watchers: [
     esbuild: {Esbuild, :install_and_run, [:drink_water, ~w(--sourcemap=inline --watch)]},

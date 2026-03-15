@@ -52,7 +52,7 @@ defmodule DrinkWaterWeb.Plugs.RateLimiter do
         conn
         |> put_resp_content_type("application/problem+json")
         |> put_resp_header("retry-after", Integer.to_string(retry_after))
-        |> send_resp(429, Jason.encode!(ProblemDetail.build(429, "Rate limit exceeded")))
+        |> send_resp(429, Jason.encode!(ProblemDetail.build(conn, :rate_limit_exceeded)))
         |> halt()
     end
   end

@@ -1,35 +1,43 @@
 defmodule DrinkWaterWeb.ErrorJSONTest do
   use DrinkWaterWeb.ConnCase, async: true
 
-  test "renders 400 in RFC 7807 format" do
-    assert DrinkWaterWeb.ErrorJSON.render("400.json", %{}) == %{
-             type: "about:blank",
-             title: "Bad Request",
-             status: 400
-           }
+  alias DrinkWaterWeb.ErrorJSON
+
+  describe "error/1 (FallbackController path)" do
+    test "returns the problem map as-is" do
+      problem = %{type: "test", title: "Test", status: 400, detail: "test", instance: "/test"}
+      assert ErrorJSON.error(%{problem: problem}) == problem
+    end
   end
 
-  test "renders 404 in RFC 7807 format" do
-    assert DrinkWaterWeb.ErrorJSON.render("404.json", %{}) == %{
-             type: "about:blank",
-             title: "Not Found",
-             status: 404
-           }
-  end
+  describe "render/2 (Endpoint render_errors path)" do
+    test "returns generic 500 for unknown exceptions" do
+      conn = build_conn(:get, "/api/users")
+      result = ErrorJSON.render("500.json", %{conn: conn, reason: %RuntimeError{message: "boom"}})
 
-  test "renders 500 in RFC 7807 format" do
-    assert DrinkWaterWeb.ErrorJSON.render("500.json", %{}) == %{
-             type: "about:blank",
-             title: "Internal Server Error",
-             status: 500
-           }
-  end
+      assert result.type == "https://www.drinkwater.com.br/internal-server-error"
+      assert result.status == 500
+      assert result.instance == "/api/users"
+    end
 
-  test "falls back to 500 for unexpected template name" do
-    assert DrinkWaterWeb.ErrorJSON.render("unknown.json", %{}) == %{
-             type: "about:blank",
-             title: "Internal Server Error",
-             status: 500
-           }
+    test "returns parsing-error for Plug.Parsers.ParseError" do
+      conn = build_conn(:post, "/api/users")
+      reason = %Plug.Parsers.ParseError{exception: %Jason.DecodeError{data: ""}}
+      result = ErrorJSON.render("400.json", %{conn: conn, reason: reason})
+
+      assert result.type == "https://www.drinkwater.com.br/parsing-error"
+      assert result.status == 400
+      assert result.instance == "/api/users"
+    end
+
+    test "returns invalid-argument for Phoenix.ActionClauseError" do
+      conn = build_conn(:post, "/api/users")
+      reason = %Phoenix.ActionClauseError{args: []}
+      result = ErrorJSON.render("400.json", %{conn: conn, reason: reason})
+
+      assert result.type == "https://www.drinkwater.com.br/invalid-argument"
+      assert result.status == 400
+      assert result.instance == "/api/users"
+    end
   end
 end

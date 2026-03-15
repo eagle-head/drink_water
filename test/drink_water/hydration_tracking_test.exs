@@ -164,14 +164,16 @@ defmodule DrinkWater.HydrationTrackingTest do
 
     test "get_water_intake/2 returns error when not found" do
       user = user_fixture()
-      assert {:error, :not_found} = HydrationTracking.get_water_intake(user.id, 0)
+      assert {:error, :not_found, :water_intake} = HydrationTracking.get_water_intake(user.id, 0)
     end
 
     test "get_water_intake/2 returns error for another users intake" do
       user1 = user_fixture()
       user2 = user_fixture()
       water_intake = water_intake_fixture(user1.id)
-      assert {:error, :not_found} = HydrationTracking.get_water_intake(user2.id, water_intake.id)
+
+      assert {:error, :not_found, :water_intake} =
+               HydrationTracking.get_water_intake(user2.id, water_intake.id)
     end
 
     test "create_water_intake/2 with valid data creates a water intake" do
@@ -199,13 +201,23 @@ defmodule DrinkWater.HydrationTrackingTest do
                HydrationTracking.create_water_intake(user.id, @invalid_attrs)
     end
 
-    test "create_water_intake/2 rejects duplicate date_time_utc for same user" do
+    test "create_water_intake/2 returns {:error, :conflict, :water_intake} for duplicate datetime" do
       user = user_fixture()
-      water_intake_fixture(user.id, %{date_time_utc: ~U[2026-03-14 10:00:00Z]})
+      datetime = ~U[2024-08-14 10:00:00Z]
 
-      attrs = %{date_time_utc: ~U[2026-03-14 10:00:00Z], volume: 500, volume_unit: :ml}
-      assert {:error, changeset} = HydrationTracking.create_water_intake(user.id, attrs)
-      assert changeset.errors[:user_id]
+      {:ok, _} =
+        HydrationTracking.create_water_intake(user.id, %{
+          date_time_utc: datetime,
+          volume: 250,
+          volume_unit: :ml
+        })
+
+      assert {:error, :conflict, :water_intake} =
+               HydrationTracking.create_water_intake(user.id, %{
+                 date_time_utc: datetime,
+                 volume: 300,
+                 volume_unit: :ml
+               })
     end
 
     test "create_water_intake/2 rejects volume out of range" do
@@ -228,6 +240,29 @@ defmodule DrinkWater.HydrationTrackingTest do
       attrs = %{date_time_utc: ~U[2026-03-14 10:00:00Z], volume: 250, volume_unit: "gallons"}
       assert {:error, changeset} = HydrationTracking.create_water_intake(user.id, attrs)
       assert changeset.errors[:volume_unit]
+    end
+
+    test "update_water_intake/2 returns {:error, :conflict, :water_intake} for duplicate datetime" do
+      user = user_fixture()
+      datetime1 = ~U[2024-08-14 10:00:00Z]
+      datetime2 = ~U[2024-08-14 11:00:00Z]
+
+      {:ok, _intake1} =
+        HydrationTracking.create_water_intake(user.id, %{
+          date_time_utc: datetime1,
+          volume: 250,
+          volume_unit: :ml
+        })
+
+      {:ok, intake2} =
+        HydrationTracking.create_water_intake(user.id, %{
+          date_time_utc: datetime2,
+          volume: 300,
+          volume_unit: :ml
+        })
+
+      assert {:error, :conflict, :water_intake} =
+               HydrationTracking.update_water_intake(intake2, %{date_time_utc: datetime1})
     end
 
     test "update_water_intake/2 with valid data updates the water intake" do
@@ -261,14 +296,18 @@ defmodule DrinkWater.HydrationTrackingTest do
       user = user_fixture()
       water_intake = water_intake_fixture(user.id)
       assert {:ok, %WaterIntake{}} = HydrationTracking.delete_water_intake(water_intake)
-      assert {:error, :not_found} = HydrationTracking.get_water_intake(user.id, water_intake.id)
+
+      assert {:error, :not_found, :water_intake} =
+               HydrationTracking.get_water_intake(user.id, water_intake.id)
     end
 
     test "water_intakes are deleted when user is deleted" do
       user = user_fixture()
       water_intake = water_intake_fixture(user.id)
       assert {:ok, _} = DrinkWater.UserManagement.delete_user(user)
-      assert {:error, :not_found} = HydrationTracking.get_water_intake(user.id, water_intake.id)
+
+      assert {:error, :not_found, :water_intake} =
+               HydrationTracking.get_water_intake(user.id, water_intake.id)
     end
   end
 end

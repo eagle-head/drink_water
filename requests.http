@@ -1,0 +1,224 @@
+### Variables
+# After running: mix run priv/repo/seeds.exs
+# (IDs always start from 1 — seeds truncate tables and reset sequences)
+# Seed users: John (1), Jane (2), Alex (3)
+@baseUrl = http://localhost:4000/api
+@johnId = 1
+@janeId = 2
+@alexId = 3
+
+###############################################################################
+# Users
+###############################################################################
+
+### List all users
+GET {{baseUrl}}/users
+
+### Get John
+GET {{baseUrl}}/users/{{johnId}}
+
+### Create a new user
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "user": {
+    "email": "mary.jane@example.com",
+    "first_name": "Mary",
+    "last_name": "Jane",
+    "birth_date": "1998-03-20",
+    "biological_sex": "female",
+    "weight": 62.0,
+    "weight_unit": "kg",
+    "height": 165.0,
+    "height_unit": "cm"
+  }
+}
+
+### Update John's weight
+PUT {{baseUrl}}/users/{{johnId}}
+Content-Type: application/json
+
+{
+  "user": {
+    "weight": 72.0
+  }
+}
+
+### Delete John (cuidado: cascade deleta alarm_settings e water_intakes)
+DELETE {{baseUrl}}/users/{{johnId}}
+
+###############################################################################
+# Alarm Settings
+###############################################################################
+
+### Get John's alarm settings
+GET {{baseUrl}}/users/{{johnId}}/alarm_settings
+
+### Get Jane's alarm settings
+GET {{baseUrl}}/users/{{janeId}}/alarm_settings
+
+### Update John's alarm settings
+PUT {{baseUrl}}/users/{{johnId}}/alarm_settings
+Content-Type: application/json
+
+{
+  "alarm_settings": {
+    "goal": 2500,
+    "interval_minutes": 45
+  }
+}
+
+### Delete Alex's alarm settings
+DELETE {{baseUrl}}/users/{{alexId}}/alarm_settings
+
+### Recreate Alex's alarm settings (after delete)
+POST {{baseUrl}}/users/{{alexId}}/alarm_settings
+Content-Type: application/json
+
+{
+  "alarm_settings": {
+    "goal": 2000,
+    "interval_minutes": 30,
+    "daily_start_time": "08:00:00",
+    "daily_end_time": "21:00:00"
+  }
+}
+
+###############################################################################
+# Water Intakes
+###############################################################################
+
+### List John's water intakes (start_date and end_date are required, format: UTC datetime)
+GET {{baseUrl}}/users/{{johnId}}/water_intakes?start_date=2024-08-14T00:00:00Z&end_date=2024-08-14T23:59:59Z
+
+### List with volume filter (only 200-350ml)
+GET {{baseUrl}}/users/{{janeId}}/water_intakes?start_date=2024-08-14T00:00:00Z&end_date=2024-08-14T23:59:59Z&min_volume=200&max_volume=350
+
+### List with pagination (2 per page)
+GET {{baseUrl}}/users/{{alexId}}/water_intakes?start_date=2024-08-14T00:00:00Z&end_date=2024-08-14T23:59:59Z&size=2
+
+### Next page (replace cursor with next_cursor from response above)
+GET {{baseUrl}}/users/{{alexId}}/water_intakes?start_date=2024-08-14T00:00:00Z&end_date=2024-08-14T23:59:59Z&size=2&cursor=REPLACE_WITH_CURSOR
+
+### Create water intake for John
+POST {{baseUrl}}/users/{{johnId}}/water_intakes
+Content-Type: application/json
+
+{
+  "water_intake": {
+    "date_time_utc": "2024-08-14T16:00:00Z",
+    "volume": 350,
+    "volume_unit": "ml"
+  }
+}
+
+### Get specific water intake (replace with real ID from list/create response)
+GET {{baseUrl}}/users/{{johnId}}/water_intakes/1
+
+### Update water intake
+PUT {{baseUrl}}/users/{{johnId}}/water_intakes/1
+Content-Type: application/json
+
+{
+  "water_intake": {
+    "volume": 500
+  }
+}
+
+### Delete water intake
+DELETE {{baseUrl}}/users/{{johnId}}/water_intakes/1
+
+###############################################################################
+# Error Responses (RFC 7807 Problem Details)
+# Each request below triggers a specific error type from the catalog.
+# Run seeds first: mix ecto.reset && mix run priv/repo/seeds.exs
+###############################################################################
+
+### 404 — User not found
+# type: user-not-found
+GET {{baseUrl}}/users/999
+
+### 404 — Alarm settings not found (user 4 has no alarm settings after fresh seed with ecto.reset)
+# type: alarm-settings-not-found
+# Note: use a user that exists but has no alarm settings, or delete one first
+DELETE {{baseUrl}}/users/{{alexId}}/alarm_settings
+
+###
+
+GET {{baseUrl}}/users/{{alexId}}/alarm_settings
+
+### 404 — Water intake not found
+# type: waterintake-not-found
+GET {{baseUrl}}/users/{{johnId}}/water_intakes/999
+
+### 409 — User already exists (duplicate email)
+# type: user-already-exists
+# Seeds already created john.doe@test.com, so this conflicts
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "user": {
+    "email": "john.doe@test.com",
+    "first_name": "Duplicate",
+    "last_name": "John",
+    "birth_date": "1990-01-01",
+    "biological_sex": "male",
+    "weight": 70.0,
+    "weight_unit": "kg",
+    "height": 175.0,
+    "height_unit": "cm"
+  }
+}
+
+### 409 — Alarm settings already exist (duplicate per user)
+# type: alarm-settings-already-exists
+# John already has alarm settings from seeds
+POST {{baseUrl}}/users/{{johnId}}/alarm_settings
+Content-Type: application/json
+
+{
+  "alarm_settings": {
+    "goal": 3000,
+    "interval_minutes": 30,
+    "daily_start_time": "07:00:00",
+    "daily_end_time": "21:00:00"
+  }
+}
+
+### 409 — Water intake duplicate datetime
+# type: waterintake-duplicate-datetime
+# John already has a record at 2024-08-14T10:00:00Z from seeds
+POST {{baseUrl}}/users/{{johnId}}/water_intakes
+Content-Type: application/json
+
+{
+  "water_intake": {
+    "date_time_utc": "2024-08-14T10:00:00Z",
+    "volume": 500,
+    "volume_unit": "ml"
+  }
+}
+
+### 422 — Validation error (missing required fields)
+# type: validation-error
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "user": {
+    "email": ""
+  }
+}
+
+### 400 — Invalid argument (bad cursor)
+# type: invalid-argument
+GET {{baseUrl}}/users/{{johnId}}/water_intakes?start_date=2024-08-14T00:00:00Z&end_date=2024-08-14T23:59:59Z&cursor=not-a-valid-cursor
+
+### 400 — Malformed JSON (parsing error)
+# type: parsing-error
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{this is not valid json}

@@ -39,9 +39,21 @@ defmodule DrinkWaterWeb.WaterIntakeControllerTest do
       assert is_nil(response["next_cursor"])
     end
 
-    test "returns 422 when required date params are missing", %{conn: conn, user: user} do
+    test "returns 422 in RFC 7807 format when required date params are missing", %{
+      conn: conn,
+      user: user
+    } do
       conn = get(conn, ~p"/api/users/#{user.id}/water_intakes")
-      assert json_response(conn, 422)["errors"] != %{}
+      response = json_response(conn, 422)
+      assert response["type"] == "https://www.drinkwater.com.br/validation-error"
+      assert response["title"] == "Unprocessable Content"
+      assert response["status"] == 422
+
+      assert response["detail"] ==
+               "One or more fields are invalid. Please correct them and try again."
+
+      assert response["instance"] == "/api/users/#{user.id}/water_intakes"
+      assert response["errors"] != %{}
     end
 
     test "returns paginated results with next_cursor", %{conn: conn, user: user} do
@@ -69,15 +81,26 @@ defmodule DrinkWaterWeb.WaterIntakeControllerTest do
       assert is_nil(response2["next_cursor"])
     end
 
-    test "returns 400 for invalid cursor", %{conn: conn, user: user} do
+    test "returns 400 in RFC 7807 format for invalid cursor", %{conn: conn, user: user} do
       params = Map.merge(@date_range, %{"cursor" => "invalid-cursor"})
       conn = get(conn, ~p"/api/users/#{user.id}/water_intakes", params)
-      assert json_response(conn, 400)
+      assert {"content-type", "application/problem+json; charset=utf-8"} in conn.resp_headers
+      response = json_response(conn, 400)
+      assert response["type"] == "https://www.drinkwater.com.br/invalid-argument"
+      assert response["title"] == "Bad Request"
+      assert response["status"] == 400
+      assert response["detail"] == "An invalid argument was provided."
+      assert response["instance"] == "/api/users/#{user.id}/water_intakes"
     end
 
-    test "returns 404 for nonexistent user", %{conn: conn} do
+    test "returns 404 in RFC 7807 format for nonexistent user", %{conn: conn} do
       conn = get(conn, ~p"/api/users/0/water_intakes", @date_range)
-      assert json_response(conn, 404)
+      response = json_response(conn, 404)
+      assert response["type"] == "https://www.drinkwater.com.br/user-not-found"
+      assert response["title"] == "Not Found"
+      assert response["status"] == 404
+      assert response["detail"] == "The requested user account was not found."
+      assert response["instance"] == "/api/users/0/water_intakes"
     end
   end
 
@@ -98,16 +121,48 @@ defmodule DrinkWaterWeb.WaterIntakeControllerTest do
              } = json_response(conn, 200)["data"]
     end
 
-    test "renders errors when data is invalid", %{conn: conn, user: user} do
+    test "renders errors in RFC 7807 format when data is invalid", %{conn: conn, user: user} do
       conn =
         post(conn, ~p"/api/users/#{user.id}/water_intakes", water_intake: @invalid_attrs)
 
-      assert json_response(conn, 422)["errors"] != %{}
+      response = json_response(conn, 422)
+      assert response["type"] == "https://www.drinkwater.com.br/validation-error"
+      assert response["title"] == "Unprocessable Content"
+      assert response["status"] == 422
+
+      assert response["detail"] ==
+               "One or more fields are invalid. Please correct them and try again."
+
+      assert response["instance"] == "/api/users/#{user.id}/water_intakes"
+      assert response["errors"] != %{}
     end
 
-    test "returns 404 for nonexistent user", %{conn: conn} do
+    test "returns 404 in RFC 7807 format for nonexistent user", %{conn: conn} do
       conn = post(conn, ~p"/api/users/0/water_intakes", water_intake: @create_attrs)
-      assert json_response(conn, 404)
+      response = json_response(conn, 404)
+      assert response["type"] == "https://www.drinkwater.com.br/user-not-found"
+      assert response["title"] == "Not Found"
+      assert response["status"] == 404
+      assert response["detail"] == "The requested user account was not found."
+      assert response["instance"] == "/api/users/0/water_intakes"
+    end
+
+    test "returns 409 when creating water intake with duplicate datetime", %{
+      conn: conn,
+      user: user
+    } do
+      post(conn, ~p"/api/users/#{user.id}/water_intakes", water_intake: @create_attrs)
+      conn = post(conn, ~p"/api/users/#{user.id}/water_intakes", water_intake: @create_attrs)
+      assert {"content-type", "application/problem+json; charset=utf-8"} in conn.resp_headers
+      response = json_response(conn, 409)
+      assert response["type"] == "https://www.drinkwater.com.br/waterintake-duplicate-datetime"
+      assert response["title"] == "Conflict"
+      assert response["status"] == 409
+
+      assert response["detail"] ==
+               "A water intake record already exists for the specified date and time."
+
+      assert response["instance"] == "/api/users/#{user.id}/water_intakes"
     end
   end
 
@@ -123,14 +178,25 @@ defmodule DrinkWaterWeb.WaterIntakeControllerTest do
              } = json_response(conn, 200)["data"]
     end
 
-    test "returns 404 for nonexistent intake", %{conn: conn, user: user} do
+    test "returns 404 in RFC 7807 format for nonexistent intake", %{conn: conn, user: user} do
       conn = get(conn, ~p"/api/users/#{user.id}/water_intakes/0")
-      assert json_response(conn, 404)
+      assert {"content-type", "application/problem+json; charset=utf-8"} in conn.resp_headers
+      response = json_response(conn, 404)
+      assert response["type"] == "https://www.drinkwater.com.br/waterintake-not-found"
+      assert response["title"] == "Not Found"
+      assert response["status"] == 404
+      assert response["detail"] == "The requested water intake record was not found."
+      assert response["instance"] == "/api/users/#{user.id}/water_intakes/0"
     end
 
-    test "returns 404 for nonexistent user", %{conn: conn} do
+    test "returns 404 in RFC 7807 format for nonexistent user", %{conn: conn} do
       conn = get(conn, ~p"/api/users/0/water_intakes/0")
-      assert json_response(conn, 404)
+      response = json_response(conn, 404)
+      assert response["type"] == "https://www.drinkwater.com.br/user-not-found"
+      assert response["title"] == "Not Found"
+      assert response["status"] == 404
+      assert response["detail"] == "The requested user account was not found."
+      assert response["instance"] == "/api/users/0/water_intakes/0"
     end
   end
 
@@ -149,7 +215,7 @@ defmodule DrinkWaterWeb.WaterIntakeControllerTest do
              } = json_response(conn, 200)["data"]
     end
 
-    test "renders errors when data is invalid", %{conn: conn, user: user} do
+    test "renders errors in RFC 7807 format when data is invalid", %{conn: conn, user: user} do
       water_intake = water_intake_fixture(user.id)
 
       conn =
@@ -157,7 +223,16 @@ defmodule DrinkWaterWeb.WaterIntakeControllerTest do
           water_intake: @invalid_attrs
         )
 
-      assert json_response(conn, 422)["errors"] != %{}
+      response = json_response(conn, 422)
+      assert response["type"] == "https://www.drinkwater.com.br/validation-error"
+      assert response["title"] == "Unprocessable Content"
+      assert response["status"] == 422
+
+      assert response["detail"] ==
+               "One or more fields are invalid. Please correct them and try again."
+
+      assert response["instance"] == "/api/users/#{user.id}/water_intakes/#{water_intake.id}"
+      assert response["errors"] != %{}
     end
   end
 
@@ -169,7 +244,12 @@ defmodule DrinkWaterWeb.WaterIntakeControllerTest do
       assert response(conn, 204)
 
       conn = get(conn, ~p"/api/users/#{user.id}/water_intakes/#{water_intake.id}")
-      assert json_response(conn, 404)
+      response = json_response(conn, 404)
+      assert response["type"] == "https://www.drinkwater.com.br/waterintake-not-found"
+      assert response["title"] == "Not Found"
+      assert response["status"] == 404
+      assert response["detail"] == "The requested water intake record was not found."
+      assert response["instance"] == "/api/users/#{user.id}/water_intakes/#{water_intake.id}"
     end
   end
 end

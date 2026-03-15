@@ -23,9 +23,9 @@ defmodule DrinkWaterWeb.UserJSON do
       last_name: user.last_name,
       birth_date: user.birth_date,
       biological_sex: user.biological_sex,
-      weight: user.weight,
+      weight: Decimal.to_float(user.weight),
       weight_unit: user.weight_unit,
-      height: user.height,
+      height: Decimal.to_float(user.height),
       height_unit: user.height_unit
     }
   end

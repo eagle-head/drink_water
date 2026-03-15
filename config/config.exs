@@ -16,7 +16,7 @@ config :drink_water, DrinkWaterWeb.Endpoint,
   url: [host: "localhost"],
   adapter: Bandit.PhoenixAdapter,
   render_errors: [
-    formats: [html: DrinkWaterWeb.ErrorHTML, json: DrinkWaterWeb.ErrorJSON],
+    formats: [json: DrinkWaterWeb.ErrorJSON, html: DrinkWaterWeb.ErrorHTML],
     layout: false
   ],
   pubsub_server: DrinkWater.PubSub,

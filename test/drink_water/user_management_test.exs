@@ -32,11 +32,11 @@ defmodule DrinkWater.UserManagementTest do
     end
 
     test "get_user/1 returns error when user does not exist" do
-      assert {:error, :not_found} = UserManagement.get_user(0)
+      assert {:error, :not_found, :user} = UserManagement.get_user(0)
     end
 
     test "get_user/1 returns error for non-integer string id" do
-      assert {:error, :not_found} = UserManagement.get_user("abc")
+      assert {:error, :not_found, :user} = UserManagement.get_user("abc")
     end
 
     test "get_user/1 accepts string integer id" do
@@ -46,7 +46,7 @@ defmodule DrinkWater.UserManagementTest do
     end
 
     test "get_user/1 returns error for non-string non-integer id" do
-      assert {:error, :not_found} = UserManagement.get_user(nil)
+      assert {:error, :not_found, :user} = UserManagement.get_user(nil)
     end
 
     test "create_user/1 with valid data creates a user" do
@@ -78,23 +78,22 @@ defmodule DrinkWater.UserManagementTest do
       assert {:error, %Ecto.Changeset{}} = UserManagement.create_user(@invalid_attrs)
     end
 
-    test "create_user/1 with duplicate email returns error changeset" do
+    test "create_user/1 returns {:error, :conflict, :user} for duplicate email" do
       user = user_fixture()
 
       duplicate_attrs = %{
         email: user.email,
-        first_name: "Ana",
-        last_name: "Silva",
-        birth_date: ~D[1995-01-01],
+        first_name: "Jane",
+        last_name: "Doe",
+        birth_date: ~D[1990-05-15],
         biological_sex: :female,
-        weight: "60.0",
+        weight: "65.0",
         weight_unit: :kg,
         height: "165.0",
         height_unit: :cm
       }
 
-      assert {:error, changeset} = UserManagement.create_user(duplicate_attrs)
-      assert {"has already been taken", _} = changeset.errors[:email]
+      assert {:error, :conflict, :user} = UserManagement.create_user(duplicate_attrs)
     end
 
     test "create_user/1 rejects birth_date under minimum age" do
@@ -219,7 +218,7 @@ defmodule DrinkWater.UserManagementTest do
     test "delete_user/1 deletes the user" do
       user = user_fixture()
       assert {:ok, %User{}} = UserManagement.delete_user(user)
-      assert {:error, :not_found} = UserManagement.get_user(user.id)
+      assert {:error, :not_found, :user} = UserManagement.get_user(user.id)
     end
 
     test "create_user/1 rejects invalid enum values" do
@@ -268,7 +267,9 @@ defmodule DrinkWater.UserManagementTest do
 
     test "get_alarm_settings_by_user/1 returns error when not found" do
       user = user_fixture()
-      assert {:error, :not_found} = UserManagement.get_alarm_settings_by_user(user.id)
+
+      assert {:error, :not_found, :alarm_settings} =
+               UserManagement.get_alarm_settings_by_user(user.id)
     end
 
     test "create_alarm_settings/2 with valid data creates alarm settings" do
@@ -298,19 +299,17 @@ defmodule DrinkWater.UserManagementTest do
                UserManagement.create_alarm_settings(user, @invalid_attrs)
     end
 
-    test "create_alarm_settings/2 rejects duplicate for same user" do
+    test "create_alarm_settings/2 returns {:error, :conflict, :alarm_settings} for duplicate" do
       user = user_fixture()
       alarm_settings_fixture(user)
 
-      attrs = %{
-        goal: 3000,
-        interval_minutes: 30,
-        daily_start_time: ~T[07:00:00],
-        daily_end_time: ~T[21:00:00]
-      }
-
-      assert {:error, changeset} = UserManagement.create_alarm_settings(user, attrs)
-      assert changeset.errors[:user_id]
+      assert {:error, :conflict, :alarm_settings} =
+               UserManagement.create_alarm_settings(user, %{
+                 goal: 2000,
+                 interval_minutes: 60,
+                 daily_start_time: ~T[08:00:00],
+                 daily_end_time: ~T[20:00:00]
+               })
     end
 
     test "create_alarm_settings/2 rejects goal out of range" do
@@ -403,7 +402,9 @@ defmodule DrinkWater.UserManagementTest do
       user = user_fixture()
       alarm_settings = alarm_settings_fixture(user)
       assert {:ok, %AlarmSettings{}} = UserManagement.delete_alarm_settings(alarm_settings)
-      assert {:error, :not_found} = UserManagement.get_alarm_settings_by_user(user.id)
+
+      assert {:error, :not_found, :alarm_settings} =
+               UserManagement.get_alarm_settings_by_user(user.id)
     end
 
     test "alarm_settings are deleted when user is deleted" do
@@ -411,7 +412,7 @@ defmodule DrinkWater.UserManagementTest do
       alarm_settings = alarm_settings_fixture(user)
       assert {:ok, _} = UserManagement.delete_user(user)
 
-      assert {:error, :not_found} =
+      assert {:error, :not_found, :alarm_settings} =
                UserManagement.get_alarm_settings_by_user(alarm_settings.user_id)
     end
   end

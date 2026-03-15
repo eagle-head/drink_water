@@ -38,11 +38,11 @@ defmodule DrinkWater.HydrationTracking do
   @doc """
   Gets a single water intake scoped by user.
 
-  Returns `{:ok, %WaterIntake{}}` or `{:error, :not_found}`.
+  Returns `{:ok, %WaterIntake{}}` or `{:error, :not_found, :water_intake}`.
   """
   def get_water_intake(user_id, id) do
     case Repo.get_by(WaterIntake, id: id, user_id: user_id) do
-      nil -> {:error, :not_found}
+      nil -> {:error, :not_found, :water_intake}
       water_intake -> {:ok, water_intake}
     end
   end
@@ -56,6 +56,7 @@ defmodule DrinkWater.HydrationTracking do
     %WaterIntake{user_id: user_id}
     |> WaterIntake.changeset(attrs)
     |> Repo.insert()
+    |> maybe_conflict(:water_intake)
   end
 
   @doc """
@@ -65,6 +66,7 @@ defmodule DrinkWater.HydrationTracking do
     water_intake
     |> WaterIntake.changeset(attrs)
     |> Repo.update()
+    |> maybe_conflict(:water_intake)
   end
 
   @doc """
@@ -72,6 +74,23 @@ defmodule DrinkWater.HydrationTracking do
   """
   def delete_water_intake(%WaterIntake{} = water_intake) do
     Repo.delete(water_intake)
+  end
+
+  defp maybe_conflict({:error, %Ecto.Changeset{} = changeset}, resource) do
+    if has_unique_constraint_error?(changeset) do
+      {:error, :conflict, resource}
+    else
+      {:error, changeset}
+    end
+  end
+
+  defp maybe_conflict(result, _resource), do: result
+
+  defp has_unique_constraint_error?(changeset) do
+    Enum.any?(changeset.errors, fn
+      {_field, {_msg, opts}} -> opts[:constraint] == :unique
+      _ -> false
+    end)
   end
 
   # Query composition
