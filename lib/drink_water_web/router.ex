@@ -14,6 +14,17 @@ defmodule DrinkWaterWeb.Router do
     plug :accepts, ["json"]
   end
 
+  pipeline :rate_limit_user_api do
+    plug DrinkWaterWeb.Plugs.RateLimiter,
+      key_prefix: "user-api",
+      limit: 30,
+      key_params: ["user_id", "id"]
+  end
+
+  pipeline :rate_limit_water_intake_api do
+    plug DrinkWaterWeb.Plugs.RateLimiter, key_prefix: "waterintake-api", limit: 60
+  end
+
   scope "/", DrinkWaterWeb do
     pipe_through :browser
 
@@ -23,11 +34,19 @@ defmodule DrinkWaterWeb.Router do
   scope "/api", DrinkWaterWeb do
     pipe_through :api
 
-    resources "/users", UserController, except: [:new, :edit] do
-      get "/alarm_settings", AlarmSettingsController, :show
-      post "/alarm_settings", AlarmSettingsController, :create
-      put "/alarm_settings", AlarmSettingsController, :update
-      delete "/alarm_settings", AlarmSettingsController, :delete
+    scope "/users" do
+      pipe_through :rate_limit_user_api
+
+      resources "/", UserController, except: [:new, :edit] do
+        get "/alarm_settings", AlarmSettingsController, :show
+        post "/alarm_settings", AlarmSettingsController, :create
+        put "/alarm_settings", AlarmSettingsController, :update
+        delete "/alarm_settings", AlarmSettingsController, :delete
+      end
+    end
+
+    scope "/users/:user_id" do
+      pipe_through :rate_limit_water_intake_api
 
       resources "/water_intakes", WaterIntakeController, except: [:new, :edit]
     end

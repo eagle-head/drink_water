@@ -26,6 +26,9 @@ config :drink_water, DrinkWater.Mailer, adapter: Swoosh.Adapters.Test
 # Disable swoosh api client as it is only required for production adapters
 config :swoosh, :api_client, false
 
+# Disable rate limiting in tests (enabled explicitly in rate limiter tests)
+config :drink_water, rate_limiting_enabled: false
+
 # Print only warnings and errors during test
 config :logger, level: :warning
 

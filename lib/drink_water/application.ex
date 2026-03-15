@@ -12,6 +12,7 @@ defmodule DrinkWater.Application do
       DrinkWater.Repo,
       {DNSCluster, query: Application.get_env(:drink_water, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: DrinkWater.PubSub},
+      {DrinkWater.RateLimit, clean_period: :timer.minutes(1)},
       # Start a worker by calling: DrinkWater.Worker.start_link(arg)
       # {DrinkWater.Worker, arg},
       # Start to serve requests, typically the last entry
