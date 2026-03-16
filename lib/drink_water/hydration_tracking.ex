@@ -10,6 +10,17 @@ defmodule DrinkWater.HydrationTracking do
   alias DrinkWater.HydrationTracking.WaterIntake
   alias DrinkWater.HydrationTracking.WaterIntakeFilter
 
+  @sort_field_atoms %{
+    "date_time_utc" => :date_time_utc,
+    "volume" => :volume,
+    "id" => :id
+  }
+
+  @sort_dir_atoms %{
+    "asc" => :asc,
+    "desc" => :desc
+  }
+
   @doc """
   Lists water intakes for a user with filtering and cursor-based pagination.
 
@@ -96,8 +107,8 @@ defmodule DrinkWater.HydrationTracking do
   # Query composition
 
   defp apply_sort(query, %{sort_field: field, sort_direction: dir}) do
-    sort_field = String.to_existing_atom(field)
-    sort_dir = String.to_existing_atom(dir)
+    sort_field = Map.fetch!(@sort_field_atoms, field)
+    sort_dir = Map.fetch!(@sort_dir_atoms, dir)
 
     order_by(query, [w], [{^sort_dir, field(w, ^sort_field)}, {^sort_dir, w.id}])
   end
@@ -130,11 +141,13 @@ defmodule DrinkWater.HydrationTracking do
 
   defp apply_volume_filter(query, _filter), do: query
 
-  # Keyset pagination: cursor encodes (sort_value|id)
+  # Keyset pagination: cursor encodes (sort_field:sort_value|id).
+  # Returns {:ok, query} or {:error, :bad_request} — the only query
+  # composition function that can fail (invalid/mismatched cursor).
   defp apply_cursor(query, %{cursor: nil}), do: {:ok, query}
 
   defp apply_cursor(query, %{cursor: cursor, sort_field: field, sort_direction: dir}) do
-    sort_field = String.to_existing_atom(field)
+    sort_field = Map.fetch!(@sort_field_atoms, field)
 
     case decode_cursor(cursor) do
       {:ok, cursor_value, cursor_id, cursor_field} when cursor_field == field ->
@@ -165,15 +178,16 @@ defmodule DrinkWater.HydrationTracking do
     end
   end
 
-  defp build_page(entries, %{size: size, sort_field: field} = _filter)
-       when length(entries) > size do
-    page = Enum.take(entries, size)
-    last = List.last(page)
-    sort_value = Map.get(last, String.to_existing_atom(field))
-    {page, encode_cursor(sort_value, last.id, field)}
+  defp build_page(entries, %{size: size, sort_field: field} = _filter) do
+    if length(entries) > size do
+      page = Enum.take(entries, size)
+      last = List.last(page)
+      sort_value = Map.get(last, Map.fetch!(@sort_field_atoms, field))
+      {page, encode_cursor(sort_value, last.id, field)}
+    else
+      {entries, nil}
+    end
   end
-
-  defp build_page(entries, _filter), do: {entries, nil}
 
   defp encode_cursor(%DateTime{} = value, id, sort_field) do
     "#{sort_field}:#{DateTime.to_iso8601(value)}|#{id}"

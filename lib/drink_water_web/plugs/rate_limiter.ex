@@ -26,12 +26,14 @@ defmodule DrinkWaterWeb.Plugs.RateLimiter do
 
   @impl true
   def call(conn, opts) do
-    if Application.get_env(:drink_water, :rate_limiting_enabled, true) do
+    if enabled?() do
       do_rate_limit(conn, opts)
     else
       conn
     end
   end
+
+  defp enabled?, do: Application.get_env(:drink_water, :rate_limiting_enabled, true)
 
   defp do_rate_limit(conn, %{
          key_prefix: prefix,

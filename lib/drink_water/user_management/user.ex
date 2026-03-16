@@ -4,6 +4,9 @@ defmodule DrinkWater.UserManagement.User do
 
   @min_age 13
   @max_age 99
+  # Unicode letters, apostrophes, hyphens, and spaces. Allows names like
+  # "José", "O'Brien-Silva", "Ana Maria". A 2-char name ending in apostrophe
+  # (e.g. "O'") is valid — it passes both format and length(min: 2) checks.
   @name_format ~r/^[\p{L}](?:[\p{L}'\s-]*[\p{L}'])?$/u
 
   schema "users" do
