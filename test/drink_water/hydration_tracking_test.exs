@@ -120,6 +120,11 @@ defmodule DrinkWater.HydrationTrackingTest do
       assert {:error, %Ecto.Changeset{}} = HydrationTracking.list_water_intakes(user.id, %{})
     end
 
+    test "list_water_intakes/1 uses empty params default and fails validation" do
+      user = user_fixture()
+      assert {:error, %Ecto.Changeset{}} = HydrationTracking.list_water_intakes(user.id)
+    end
+
     test "list_water_intakes/2 returns error for invalid cursor" do
       user = user_fixture()
       params = Map.merge(@date_range, %{"cursor" => "invalid-cursor"})
