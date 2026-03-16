@@ -16,29 +16,29 @@
 
 ### New files
 
-| File | Responsibility |
-|------|---------------|
-| `lib/drink_water_web/live/dashboard_live.ex` | Main LiveView — mount, handle_params, PubSub subscribe, dispatch to children |
-| `lib/drink_water_web/live/dashboard_live.html.heex` | Dashboard template — grid layout with child components |
-| `lib/drink_water_web/live/progress_component.ex` | Live component — daily progress ring |
-| `lib/drink_water_web/live/history_component.ex` | Live component — today's intake list with delete |
-| `lib/drink_water_web/live/intake_form_component.ex` | Live component — log water form |
-| `lib/drink_water_web/live/weekly_summary_component.ex` | Live component — 7-day bar chart |
-| `lib/drink_water_web/live/next_alarm_component.ex` | Live component — next alarm info |
-| `lib/drink_water_web/live/alarm_settings_component.ex` | Live component — view/edit alarm settings modal |
-| `lib/drink_water_web/components/dashboard_components.ex` | Function components — progress_ring, intake_card, summary_bar |
-| `test/drink_water_web/live/dashboard_live_test.exs` | LiveView behavior tests |
-| `test/drink_water/hydration_tracking_dashboard_test.exs` | Context tests for new functions |
-| `test/drink_water/pubsub_broadcast_test.exs` | PubSub broadcast tests |
+| File                                                     | Responsibility                                                               |
+| -------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `lib/drink_water_web/live/dashboard_live.ex`             | Main LiveView — mount, handle_params, PubSub subscribe, dispatch to children |
+| `lib/drink_water_web/live/dashboard_live.html.heex`      | Dashboard template — grid layout with child components                       |
+| `lib/drink_water_web/live/progress_component.ex`         | Live component — daily progress ring                                         |
+| `lib/drink_water_web/live/history_component.ex`          | Live component — today's intake list with delete                             |
+| `lib/drink_water_web/live/intake_form_component.ex`      | Live component — log water form                                              |
+| `lib/drink_water_web/live/weekly_summary_component.ex`   | Live component — 7-day bar chart                                             |
+| `lib/drink_water_web/live/next_alarm_component.ex`       | Live component — next alarm info                                             |
+| `lib/drink_water_web/live/alarm_settings_component.ex`   | Live component — view/edit alarm settings modal                              |
+| `lib/drink_water_web/components/dashboard_components.ex` | Function components — progress_ring, intake_card, summary_bar                |
+| `test/drink_water_web/live/dashboard_live_test.exs`      | LiveView behavior tests                                                      |
+| `test/drink_water/hydration_tracking_dashboard_test.exs` | Context tests for new functions                                              |
+| `test/drink_water/pubsub_broadcast_test.exs`             | PubSub broadcast tests                                                       |
 
 ### Modified files
 
-| File | Changes |
-|------|---------|
-| `lib/drink_water_web/router.ex:35-39` | Add `live "/dashboard", DashboardLive` route |
-| `lib/drink_water/hydration_tracking.ex` | Add `daily_progress/3`, `list_daily_intakes/2`, `weekly_summary/3`, `delete_water_intake_by_id/2`; add broadcasts to `create_water_intake/2`, `delete_water_intake/1` |
-| `lib/drink_water/user_management.ex:164-168` | Add broadcast to `update_alarm_settings/2` |
-| `lib/drink_water_web/components/core_components.ex:299` | Change `defp error(assigns)` to `def error(assigns)` so live components can use `<.error>` |
+| File                                                    | Changes                                                                                                                                                               |
+| ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `lib/drink_water_web/router.ex:35-39`                   | Add `live "/dashboard", DashboardLive` route                                                                                                                          |
+| `lib/drink_water/hydration_tracking.ex`                 | Add `daily_progress/3`, `list_daily_intakes/2`, `weekly_summary/3`, `delete_water_intake_by_id/2`; add broadcasts to `create_water_intake/2`, `delete_water_intake/1` |
+| `lib/drink_water/user_management.ex:164-168`            | Add broadcast to `update_alarm_settings/2`                                                                                                                            |
+| `lib/drink_water_web/components/core_components.ex:299` | Change `defp error(assigns)` to `def error(assigns)` so live components can use `<.error>`                                                                            |
 
 ---
 
@@ -47,6 +47,7 @@
 ### Task 1: DashboardLive route and empty shell
 
 **Files:**
+
 - Modify: `lib/drink_water_web/router.ex:35-39`
 - Create: `lib/drink_water_web/live/dashboard_live.ex`
 - Create: `lib/drink_water_web/live/dashboard_live.html.heex`
@@ -233,6 +234,7 @@ git commit -m "Step 8a: Add DashboardLive with route, layout, and PubSub subscri
 ### Task 2: Context function — daily_progress/3
 
 **Files:**
+
 - Modify: `lib/drink_water/hydration_tracking.ex`
 - Test: `test/drink_water/hydration_tracking_dashboard_test.exs`
 
@@ -358,6 +360,7 @@ git commit -m "Step 8b: Add daily_progress/3 to HydrationTracking context"
 ### Task 3: ProgressComponent + progress ring
 
 **Files:**
+
 - Create: `lib/drink_water_web/live/progress_component.ex`
 - Create: `lib/drink_water_web/components/dashboard_components.ex`
 - Modify: `lib/drink_water_web/live/dashboard_live.ex`
@@ -586,6 +589,7 @@ git commit -m "Step 8b: Add ProgressComponent with SVG progress ring"
 ### Task 4: Context functions — list_daily_intakes/2 and delete_water_intake_by_id/2
 
 **Files:**
+
 - Modify: `lib/drink_water/hydration_tracking.ex`
 - Test: `test/drink_water/hydration_tracking_dashboard_test.exs`
 
@@ -742,6 +746,7 @@ git commit -m "Step 8c: Add list_daily_intakes/2 and delete_water_intake_by_id/2
 ### Task 5: HistoryComponent + PubSub broadcast for :intake_deleted
 
 **Files:**
+
 - Modify: `lib/drink_water/hydration_tracking.ex` (add broadcast)
 - Create: `lib/drink_water_web/live/history_component.ex`
 - Modify: `lib/drink_water_web/components/dashboard_components.ex`
@@ -1005,6 +1010,7 @@ git commit -m "Step 8c: Add HistoryComponent with delete and :intake_deleted bro
 ### Task 6: IntakeFormComponent + :intake_created broadcast
 
 **Files:**
+
 - Modify: `lib/drink_water/hydration_tracking.ex` (add broadcast to create)
 - Create: `lib/drink_water_web/live/intake_form_component.ex`
 - Modify: `lib/drink_water_web/live/dashboard_live.ex`
@@ -1319,6 +1325,7 @@ git commit -m "Step 8d: Add IntakeFormComponent with :intake_created broadcast a
 ### Task 7: weekly_summary/3 + WeeklySummaryComponent
 
 **Files:**
+
 - Modify: `lib/drink_water/hydration_tracking.ex`
 - Create: `lib/drink_water_web/live/weekly_summary_component.ex`
 - Modify: `lib/drink_water_web/components/dashboard_components.ex`
@@ -1572,6 +1579,7 @@ git commit -m "Step 8e: Add weekly_summary/3 and WeeklySummaryComponent with CSS
 ### Task 8: NextAlarmComponent
 
 **Files:**
+
 - Create: `lib/drink_water_web/live/next_alarm_component.ex`
 - Modify: `lib/drink_water_web/live/dashboard_live.ex`
 - Modify: `lib/drink_water_web/live/dashboard_live.html.heex`
@@ -1735,6 +1743,7 @@ git commit -m "Step 8f: Add NextAlarmComponent with alarm time calculation"
 ### Task 9: AlarmSettingsComponent + :alarm_settings_updated broadcast
 
 **Files:**
+
 - Modify: `lib/drink_water/user_management.ex` (add broadcast)
 - Create: `lib/drink_water_web/live/alarm_settings_component.ex`
 - Modify: `lib/drink_water_web/live/dashboard_live.ex`
@@ -2113,6 +2122,7 @@ git commit -m "Step 8g: Add AlarmSettingsComponent with edit and :alarm_settings
 ### Task 10: Update MIGRATION_ROADMAP.md and final checks
 
 **Files:**
+
 - Modify: `MIGRATION_ROADMAP.md`
 
 - [ ] **Step 1: Run full test suite**

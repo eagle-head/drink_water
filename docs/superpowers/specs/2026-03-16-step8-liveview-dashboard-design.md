@@ -136,11 +136,11 @@ DashboardComponents        — progress_ring, intake_card, summary_bar, etc.
 
 **Events and affected components:**
 
-| Event                      | Broadcaster         | DashboardLive dispatches to                              |
-|----------------------------|---------------------|----------------------------------------------------------|
-| `:intake_created`          | HydrationTracking   | ProgressComponent, HistoryComponent, WeeklySummaryComponent |
-| `:intake_deleted`          | HydrationTracking   | ProgressComponent, HistoryComponent, WeeklySummaryComponent |
-| `:alarm_settings_updated`  | UserManagement      | ProgressComponent, NextAlarmComponent, AlarmSettingsComponent, WeeklySummaryComponent |
+| Event                     | Broadcaster       | DashboardLive dispatches to                                                           |
+| ------------------------- | ----------------- | ------------------------------------------------------------------------------------- |
+| `:intake_created`         | HydrationTracking | ProgressComponent, HistoryComponent, WeeklySummaryComponent                           |
+| `:intake_deleted`         | HydrationTracking | ProgressComponent, HistoryComponent, WeeklySummaryComponent                           |
+| `:alarm_settings_updated` | UserManagement    | ProgressComponent, NextAlarmComponent, AlarmSettingsComponent, WeeklySummaryComponent |
 
 **Broadcast location:** Inside existing context functions, after successful DB
 operation. Added to: `HydrationTracking.create_water_intake/2`,
@@ -269,15 +269,15 @@ vertical).
 
 Each sub-step builds on the previous one.
 
-| Sub-step | Description | Deliverable |
-|----------|-------------|-------------|
-| **8a** | Base structure — DashboardLive with mount/handle_params split, `/dashboard` route, grid layout, hardcoded user (John Doe), PubSub subscribe with `connected?/1` guard | Empty page with header and placeholder cards |
-| **8b** | Daily progress — `daily_progress/3` in context, ProgressComponent, SVG progress ring | Card showing consumption vs goal |
-| **8c** | Today's history — `list_daily_intakes/2` and `delete_water_intake_by_id/2` in context, HistoryComponent, list with delete, add broadcast `:intake_deleted` to both `delete_water_intake/1` and `delete_water_intake_by_id/2` | Card with intake list, functional delete that updates ProgressComponent in real-time |
-| **8d** | Log water — IntakeFormComponent, form with quick buttons + custom, add broadcast `:intake_created` to `create_water_intake/2`, error handling with inline validation, form reset on success | Functional form, ProgressComponent and HistoryComponent update in real-time |
-| **8e** | Weekly summary — `weekly_summary/3` in context, WeeklySummaryComponent, CSS bars | Card with bars for last 7 days |
-| **8f** | Next alarm — NextAlarmComponent, calculation from AlarmSettings + current time | Card showing next alarm time |
-| **8g** | Edit alarm settings — AlarmSettingsComponent, daisyUI modal with form, add broadcast `:alarm_settings_updated` to `update_alarm_settings/2` | Functional modal, dependent components update in real-time |
+| Sub-step | Description                                                                                                                                                                                                                  | Deliverable                                                                          |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| **8a**   | Base structure — DashboardLive with mount/handle_params split, `/dashboard` route, grid layout, hardcoded user (John Doe), PubSub subscribe with `connected?/1` guard                                                        | Empty page with header and placeholder cards                                         |
+| **8b**   | Daily progress — `daily_progress/3` in context, ProgressComponent, SVG progress ring                                                                                                                                         | Card showing consumption vs goal                                                     |
+| **8c**   | Today's history — `list_daily_intakes/2` and `delete_water_intake_by_id/2` in context, HistoryComponent, list with delete, add broadcast `:intake_deleted` to both `delete_water_intake/1` and `delete_water_intake_by_id/2` | Card with intake list, functional delete that updates ProgressComponent in real-time |
+| **8d**   | Log water — IntakeFormComponent, form with quick buttons + custom, add broadcast `:intake_created` to `create_water_intake/2`, error handling with inline validation, form reset on success                                  | Functional form, ProgressComponent and HistoryComponent update in real-time          |
+| **8e**   | Weekly summary — `weekly_summary/3` in context, WeeklySummaryComponent, CSS bars                                                                                                                                             | Card with bars for last 7 days                                                       |
+| **8f**   | Next alarm — NextAlarmComponent, calculation from AlarmSettings + current time                                                                                                                                               | Card showing next alarm time                                                         |
+| **8g**   | Edit alarm settings — AlarmSettingsComponent, daisyUI modal with form, add broadcast `:alarm_settings_updated` to `update_alarm_settings/2`                                                                                  | Functional modal, dependent components update in real-time                           |
 
 **Step 8d is the key milestone** — it proves the full PubSub reactivity loop
 works (form submit -> context -> broadcast -> parent dispatches -> components
@@ -323,10 +323,10 @@ Examples of what NOT to test:
 
 After absorbing Step 9 into Step 8, the roadmap renumbers:
 
-| New # | Description | Old # |
-|-------|-------------|-------|
+| New #          | Description                 | Old #       |
+| -------------- | --------------------------- | ----------- |
 | Step 8 (8a-8g) | LiveView dashboard + PubSub | Steps 8 + 9 |
-| Step 9 | Background jobs with Oban | Step 10 |
-| Step 10 | Keycloak/OAuth2 integration | Step 11 |
-| Step 11 | public_id field on User | Step 12 |
-| Step 12 | Scope-based authorization | Step 13 |
+| Step 9         | Background jobs with Oban   | Step 10     |
+| Step 10        | Keycloak/OAuth2 integration | Step 11     |
+| Step 11        | public_id field on User     | Step 12     |
+| Step 12        | Scope-based authorization   | Step 13     |
