@@ -44,7 +44,7 @@ defmodule DrinkWaterWeb.Router do
     scope "/users" do
       pipe_through :rate_limit_user_api
 
-      resources "/", UserController, except: [:new, :edit] do
+      resources "/", UserController, except: [:new, :edit, :index] do
         get "/alarm_settings", AlarmSettingsController, :show
         post "/alarm_settings", AlarmSettingsController, :create
         put "/alarm_settings", AlarmSettingsController, :update

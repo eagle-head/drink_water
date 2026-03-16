@@ -9,19 +9,6 @@ defmodule DrinkWater.UserManagement do
   alias DrinkWater.UserManagement.User
 
   @doc """
-  Returns the list of users.
-
-  ## Examples
-
-      iex> list_users()
-      [%User{}, ...]
-
-  """
-  def list_users do
-    Repo.all(User)
-  end
-
-  @doc """
   Gets a single user.
 
   Returns `{:ok, %User{}}` if the user exists, `{:error, :not_found, :user}` otherwise.

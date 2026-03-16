@@ -11,9 +11,6 @@
 # Users
 ###############################################################################
 
-### List all users
-GET {{baseUrl}}/users
-
 ### Get John
 GET {{baseUrl}}/users/{{johnId}}
 

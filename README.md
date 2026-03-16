@@ -42,7 +42,6 @@ Seeds create 3 users (John, Jane, Alex) with alarm settings and water intake rec
 
 | Method | Path             | Description                          | Rate Limit |
 | ------ | ---------------- | ------------------------------------ | ---------- |
-| GET    | `/api/users`     | List all users                       | 30/min     |
 | POST   | `/api/users`     | Create user                          | 30/min     |
 | GET    | `/api/users/:id` | Get user                             | 30/min     |
 | PUT    | `/api/users/:id` | Update user                          | 30/min     |

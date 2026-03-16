@@ -6,11 +6,6 @@ defmodule DrinkWaterWeb.UserController do
 
   action_fallback DrinkWaterWeb.FallbackController
 
-  def index(conn, _params) do
-    users = UserManagement.list_users()
-    render(conn, :index, users: users)
-  end
-
   def create(conn, %{"user" => user_params}) do
     with {:ok, %User{} = user} <- UserManagement.create_user(user_params) do
       conn
