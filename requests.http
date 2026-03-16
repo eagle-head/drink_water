@@ -222,3 +222,94 @@ POST {{baseUrl}}/users
 Content-Type: application/json
 
 {this is not valid json}
+
+###############################################################################
+# Step 7a — Name Format Validation
+# Names must contain only Unicode letters, spaces, hyphens, or apostrophes.
+###############################################################################
+
+### 422 — Name with numbers (rejected)
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "user": {
+    "email": "invalid.name@example.com",
+    "first_name": "John123",
+    "last_name": "Doe",
+    "birth_date": "1990-01-01",
+    "biological_sex": "male",
+    "weight": 75.0,
+    "weight_unit": "kg",
+    "height": 175.0,
+    "height_unit": "cm"
+  }
+}
+
+### 422 — Name with special characters (rejected)
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "user": {
+    "email": "xss.name@example.com",
+    "first_name": "John",
+    "last_name": "Doe<script>",
+    "birth_date": "1990-01-01",
+    "biological_sex": "male",
+    "weight": 75.0,
+    "weight_unit": "kg",
+    "height": 175.0,
+    "height_unit": "cm"
+  }
+}
+
+### 201 — Accented and compound names (accepted)
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "user": {
+    "email": "jose.obrien@example.com",
+    "first_name": "José",
+    "last_name": "O'Brien-Silva",
+    "birth_date": "1990-01-01",
+    "biological_sex": "male",
+    "weight": 75.0,
+    "weight_unit": "kg",
+    "height": 175.0,
+    "height_unit": "cm"
+  }
+}
+
+###############################################################################
+# Step 7c — Sort Field/Direction
+# Supports: sort_field=date_time_utc|volume|id, sort_direction=asc|desc
+# Default: date_time_utc desc
+###############################################################################
+
+### List sorted by volume ascending
+GET {{baseUrl}}/users/{{johnId}}/water_intakes?start_date=2024-08-14T00:00:00Z&end_date=2024-08-14T23:59:59Z&sort_field=volume&sort_direction=asc
+
+### List sorted by date ascending (oldest first)
+GET {{baseUrl}}/users/{{johnId}}/water_intakes?start_date=2024-08-14T00:00:00Z&end_date=2024-08-14T23:59:59Z&sort_field=date_time_utc&sort_direction=asc
+
+### List sorted by volume desc with pagination
+GET {{baseUrl}}/users/{{johnId}}/water_intakes?start_date=2024-08-14T00:00:00Z&end_date=2024-08-14T23:59:59Z&sort_field=volume&sort_direction=desc&size=2
+
+### 422 — Invalid sort_field
+GET {{baseUrl}}/users/{{johnId}}/water_intakes?start_date=2024-08-14T00:00:00Z&end_date=2024-08-14T23:59:59Z&sort_field=email
+
+### 422 — Invalid sort_direction
+GET {{baseUrl}}/users/{{johnId}}/water_intakes?start_date=2024-08-14T00:00:00Z&end_date=2024-08-14T23:59:59Z&sort_direction=sideways
+
+###############################################################################
+# Step 7d — Idempotent User Delete
+# Always returns 204, even if user does not exist (prevents user enumeration).
+###############################################################################
+
+### 204 — Delete nonexistent user (idempotent, no error)
+DELETE {{baseUrl}}/users/999
+
+### 204 — Delete with non-numeric ID (idempotent, no error)
+DELETE {{baseUrl}}/users/abc
