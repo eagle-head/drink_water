@@ -107,6 +107,12 @@ defmodule DrinkWater.UserManagement do
   @doc """
   Deletes a user by ID. Idempotent — returns `:ok` whether the user
   existed or not. Accepts integer or string ID.
+
+  Always returns `:ok` by design: the API must not reveal whether a
+  given user ID exists (prevents user enumeration). Observability
+  comes from structured logging and telemetry, not HTTP status codes.
+  Related records (alarm_settings, water_intakes) are cascade-deleted
+  by the database via ON DELETE CASCADE constraints.
   """
   def delete_user_by_id(id) when is_integer(id) do
     User

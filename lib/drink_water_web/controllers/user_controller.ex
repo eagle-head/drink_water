@@ -33,6 +33,8 @@ defmodule DrinkWaterWeb.UserController do
     end
   end
 
+  # Always 204 — idempotent delete that does not reveal whether the
+  # user existed. Security strategy: prevent user enumeration.
   def delete(conn, %{"id" => id}) do
     :ok = UserManagement.delete_user_by_id(id)
     send_resp(conn, :no_content, "")
