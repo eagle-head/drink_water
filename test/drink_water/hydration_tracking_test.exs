@@ -263,6 +263,26 @@ defmodule DrinkWater.HydrationTrackingTest do
       assert is_nil(cursor2)
     end
 
+    test "list_water_intakes/2 rejects cursor without sort field prefix" do
+      user = user_fixture()
+
+      # Cursor without ":" separator — split_field_value returns :error
+      cursor = Base.url_encode64("noprefix|1", padding: false)
+
+      params = Map.merge(@date_range, %{"cursor" => cursor})
+      assert {:error, :bad_request} = HydrationTracking.list_water_intakes(user.id, params)
+    end
+
+    test "list_water_intakes/2 rejects cursor with unparseable sort value" do
+      user = user_fixture()
+
+      # Cursor with valid structure but value that is neither DateTime nor integer
+      cursor = Base.url_encode64("volume:not_a_number|1", padding: false)
+
+      params = Map.merge(@date_range, %{"sort_field" => "volume", "cursor" => cursor})
+      assert {:error, :bad_request} = HydrationTracking.list_water_intakes(user.id, params)
+    end
+
     test "list_water_intakes/2 rejects cursor from different sort_field" do
       user = user_fixture()
 

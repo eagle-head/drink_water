@@ -330,6 +330,12 @@ defmodule DrinkWater.UserManagementTest do
       assert :ok = UserManagement.delete_user_by_id("abc")
     end
 
+    test "delete_user_by_id/1 returns :ok for non-string non-integer types" do
+      assert :ok = UserManagement.delete_user_by_id(nil)
+      assert :ok = UserManagement.delete_user_by_id(:atom)
+      assert :ok = UserManagement.delete_user_by_id([1, 2])
+    end
+
     test "delete_user_by_id/1 cascades to alarm_settings and water_intakes" do
       user = user_fixture()
       alarm_settings_fixture(user)

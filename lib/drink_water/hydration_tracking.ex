@@ -100,7 +100,6 @@ defmodule DrinkWater.HydrationTracking do
   defp has_unique_constraint_error?(changeset) do
     Enum.any?(changeset.errors, fn
       {_field, {_msg, opts}} -> opts[:constraint] == :unique
-      _ -> false
     end)
   end
 
@@ -113,16 +112,11 @@ defmodule DrinkWater.HydrationTracking do
     order_by(query, [w], [{^sort_dir, field(w, ^sort_field)}, {^sort_dir, w.id}])
   end
 
-  defp apply_date_filter(query, %{start_date: start_date, end_date: end_date})
-       when not is_nil(start_date) and not is_nil(end_date) do
+  defp apply_date_filter(query, %{start_date: start_date, end_date: end_date}) do
     query
     |> where([w], w.date_time_utc >= ^start_date)
     |> where([w], w.date_time_utc <= ^end_date)
   end
-
-  # start_date and end_date are required by WaterIntakeFilter, so this fallback
-  # only fires if both are nil (which changeset validation prevents).
-  defp apply_date_filter(query, _filter), do: query
 
   defp apply_volume_filter(query, %{min_volume: min, max_volume: max})
        when not is_nil(min) and not is_nil(max) do
