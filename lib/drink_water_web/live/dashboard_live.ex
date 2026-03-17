@@ -146,10 +146,16 @@ defmodule DrinkWaterWeb.DashboardLive do
     {:noreply, assign(socket, editing_intake: nil)}
   end
 
-  # Flash from child components
+  # Flash from child components — auto-dismiss after 5 seconds
   @impl true
   def handle_info({:flash, kind, message}, socket) do
+    Process.send_after(self(), {:clear_flash, kind}, 5000)
     {:noreply, put_flash(socket, kind, message)}
+  end
+
+  @impl true
+  def handle_info({:clear_flash, kind}, socket) do
+    {:noreply, clear_flash(socket, kind)}
   end
 
   @impl true
