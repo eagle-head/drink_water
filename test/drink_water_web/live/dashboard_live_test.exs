@@ -312,6 +312,47 @@ defmodule DrinkWaterWeb.DashboardLiveTest do
     end
   end
 
+  describe "weekly bar click" do
+    setup %{user: user} do
+      alarm_settings_fixture(user, %{goal: 2000, interval_minutes: 60})
+
+      yesterday = Date.add(Date.utc_today(), -1)
+
+      water_intake_fixture(user.id, %{
+        date_time_utc: DateTime.new!(yesterday, ~T[10:00:00], "Etc/UTC"),
+        volume: 400
+      })
+
+      :ok
+    end
+
+    test "clicking a weekly bar navigates to that day", %{conn: conn} do
+      {:ok, view, _html} = live(conn, "/dashboard")
+      yesterday = Date.add(Date.utc_today(), -1)
+
+      view
+      |> element("[phx-click=\"select-day\"][phx-value-date=\"#{yesterday}\"]")
+      |> render_click()
+
+      html = render(view)
+      assert html =~ Calendar.strftime(yesterday, "%b %d, %Y")
+      assert html =~ "400"
+    end
+
+    test "selected bar has active styling", %{conn: conn} do
+      {:ok, view, _html} = live(conn, "/dashboard")
+      yesterday = Date.add(Date.utc_today(), -1)
+
+      view
+      |> element("[phx-click=\"select-day\"][phx-value-date=\"#{yesterday}\"]")
+      |> render_click()
+
+      html = render(view)
+      assert html =~ "bg-primary\""
+      assert html =~ "bg-primary/40"
+    end
+  end
+
   describe "next alarm" do
     setup %{user: user} do
       alarm_settings_fixture(user, %{goal: 2000, interval_minutes: 60})
