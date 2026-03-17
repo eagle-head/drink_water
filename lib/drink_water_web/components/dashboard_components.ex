@@ -20,11 +20,13 @@ defmodule DrinkWaterWeb.DashboardComponents do
     ~H"""
     <div class="flex items-end justify-between gap-1 h-32">
       <div :for={day <- @days} class="flex flex-col items-center flex-1">
-        <div class="w-full flex flex-col justify-end h-24">
+        <div
+          class="tooltip tooltip-top w-full flex flex-col justify-end h-24"
+          data-tip={"#{day.total_ml}ml / #{day.goal}ml"}
+        >
           <div
             class={"rounded-t w-full transition-all duration-500 cursor-pointer #{if @selected_date == day.date, do: "bg-primary", else: "bg-primary/40"}"}
             style={"height: #{day.total_ml / @max_ml * 100}%"}
-            title={"#{day.total_ml}ml / #{day.goal}ml"}
             phx-click="select-day"
             phx-value-date={day.date}
             phx-target={@target}
