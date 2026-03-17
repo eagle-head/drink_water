@@ -96,21 +96,21 @@ defmodule DrinkWaterWeb.HistoryComponent do
           </h2>
         <% end %>
 
-        <div class="flex gap-1">
+        <div class="join">
           <button
             phx-click="nav-prev"
             phx-target={@myself}
-            class="btn btn-ghost btn-xs"
+            class="join-item btn btn-ghost btn-xs"
             title={gettext("Previous day")}
           >
-            <.icon name="hero-chevron-left" class="w-4 h-4" />
+            <.icon name="hero-chevron-left" class="size-4" />
           </button>
 
           <%= unless @is_today do %>
             <button
               phx-click="nav-today"
               phx-target={@myself}
-              class="btn btn-ghost btn-xs"
+              class="join-item btn btn-ghost btn-xs"
             >
               {gettext("Today")}
             </button>
@@ -119,17 +119,17 @@ defmodule DrinkWaterWeb.HistoryComponent do
           <button
             phx-click="nav-next"
             phx-target={@myself}
-            class={"btn btn-ghost btn-xs #{if @is_today, do: "btn-disabled"}"}
+            class={"join-item btn btn-ghost btn-xs #{if @is_today, do: "btn-disabled"}"}
             disabled={@is_today}
             title={gettext("Next day")}
           >
-            <.icon name="hero-chevron-right" class="w-4 h-4" />
+            <.icon name="hero-chevron-right" class="size-4" />
           </button>
         </div>
       </div>
 
       <%= if @intakes == [] do %>
-        <p class="text-base-content/60">
+        <p class="label">
           <%= if @is_today do %>
             {gettext("No water logged today")}
           <% else %>
@@ -137,41 +137,30 @@ defmodule DrinkWaterWeb.HistoryComponent do
           <% end %>
         </p>
       <% else %>
-        <div class="overflow-x-auto">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>{gettext("Time")}</th>
-                <th>{gettext("Volume")}</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr :for={intake <- @intakes} data-intake-id={intake.id}>
-                <td>{Calendar.strftime(intake.date_time_utc, "%H:%M")}</td>
-                <td>{intake.volume}ml</td>
-                <td class="flex gap-1">
-                  <button
-                    phx-click="edit"
-                    phx-value-id={intake.id}
-                    phx-target={@myself}
-                    class="btn btn-ghost btn-xs"
-                  >
-                    <.icon name="hero-pencil-square" class="w-4 h-4" />
-                  </button>
-                  <button
-                    phx-click="delete"
-                    phx-value-id={intake.id}
-                    phx-target={@myself}
-                    class="btn btn-ghost btn-xs text-error"
-                  >
-                    <.icon name="hero-x-mark" class="w-4 h-4" />
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <ul class="list bg-base-200 rounded-box">
+          <li :for={intake <- @intakes} class="list-row" data-intake-id={intake.id}>
+            <div class="font-mono">{Calendar.strftime(intake.date_time_utc, "%H:%M")}</div>
+            <div class="list-col-grow font-bold">{intake.volume}ml</div>
+            <div class="join">
+              <button
+                phx-click="edit"
+                phx-value-id={intake.id}
+                phx-target={@myself}
+                class="join-item btn btn-ghost btn-xs"
+              >
+                <.icon name="hero-pencil-square" class="size-4" />
+              </button>
+              <button
+                phx-click="delete"
+                phx-value-id={intake.id}
+                phx-target={@myself}
+                class="join-item btn btn-ghost btn-xs text-error"
+              >
+                <.icon name="hero-x-mark" class="size-4" />
+              </button>
+            </div>
+          </li>
+        </ul>
       <% end %>
     </div>
     """
