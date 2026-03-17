@@ -115,4 +115,20 @@ defmodule DrinkWaterWeb.DashboardLiveTest do
       assert html =~ "2000ml"
     end
   end
+
+  describe "weekly summary" do
+    test "shows 7 day bars", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/dashboard")
+
+      assert html =~ "Weekly Summary"
+
+      today = Date.utc_today()
+
+      for offset <- -6..0 do
+        day = Date.add(today, offset)
+        day_abbr = Calendar.strftime(day, "%a")
+        assert html =~ day_abbr
+      end
+    end
+  end
 end

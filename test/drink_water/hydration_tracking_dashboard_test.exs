@@ -126,4 +126,50 @@ defmodule DrinkWater.HydrationTrackingDashboardTest do
                HydrationTracking.delete_water_intake_by_id(user2.id, intake.id)
     end
   end
+
+  describe "weekly_summary/3" do
+    test "returns 7 days ending on the given date" do
+      user = user_fixture()
+      today = Date.utc_today()
+
+      result = HydrationTracking.weekly_summary(user.id, today, 2000)
+
+      assert length(result) == 7
+      assert hd(result).date == Date.add(today, -6)
+      assert List.last(result).date == today
+    end
+
+    test "returns total_ml 0 for days with no intakes" do
+      user = user_fixture()
+      today = Date.utc_today()
+
+      result = HydrationTracking.weekly_summary(user.id, today, 2000)
+
+      assert Enum.all?(result, fn day -> day.total_ml == 0 end)
+    end
+
+    test "includes goal in each day entry" do
+      user = user_fixture()
+      today = Date.utc_today()
+
+      result = HydrationTracking.weekly_summary(user.id, today, 1500)
+
+      assert Enum.all?(result, fn day -> day.goal == 1500 end)
+    end
+
+    test "sums volumes per day correctly" do
+      user = user_fixture()
+      today = Date.utc_today()
+      now = DateTime.utc_now()
+
+      water_intake_fixture(user.id, %{date_time_utc: now, volume: 300})
+
+      water_intake_fixture(user.id, %{date_time_utc: DateTime.add(now, -60, :second), volume: 200})
+
+      result = HydrationTracking.weekly_summary(user.id, today, 2000)
+
+      today_entry = Enum.find(result, fn day -> day.date == today end)
+      assert today_entry.total_ml == 500
+    end
+  end
 end

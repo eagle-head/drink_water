@@ -34,7 +34,7 @@ defmodule DrinkWaterWeb.DashboardLive do
   end
 
   @impl true
-  def handle_info(:intake_created, socket) do
+  def handle_info(event, socket) when event in [:intake_created, :intake_deleted] do
     send_update(DrinkWaterWeb.ProgressComponent,
       id: "progress",
       user_id: socket.assigns.user.id,
@@ -46,19 +46,10 @@ defmodule DrinkWaterWeb.DashboardLive do
       user_id: socket.assigns.user.id
     )
 
-    {:noreply, socket}
-  end
-
-  def handle_info(:intake_deleted, socket) do
-    send_update(DrinkWaterWeb.ProgressComponent,
-      id: "progress",
+    send_update(DrinkWaterWeb.WeeklySummaryComponent,
+      id: "weekly-summary",
       user_id: socket.assigns.user.id,
       goal: socket.assigns.goal
-    )
-
-    send_update(DrinkWaterWeb.HistoryComponent,
-      id: "history",
-      user_id: socket.assigns.user.id
     )
 
     {:noreply, socket}

@@ -68,6 +68,31 @@ defmodule DrinkWater.HydrationTracking do
   end
 
   @doc """
+  Returns a 7-day hydration summary ending on `end_date` (inclusive).
+  Days with no intakes appear with total_ml: 0.
+  A single `goal` value is applied to all days.
+  """
+  def weekly_summary(user_id, %Date{} = end_date, goal) when is_integer(goal) and goal > 0 do
+    start_date = Date.add(end_date, -6)
+    start_dt = DateTime.new!(start_date, ~T[00:00:00], "Etc/UTC")
+    end_dt = DateTime.new!(Date.add(end_date, 1), ~T[00:00:00], "Etc/UTC")
+
+    daily_totals =
+      WaterIntake
+      |> where(user_id: ^user_id)
+      |> where([w], w.date_time_utc >= ^start_dt and w.date_time_utc < ^end_dt)
+      |> group_by([w], fragment("?::date", w.date_time_utc))
+      |> select([w], {fragment("?::date", w.date_time_utc), sum(w.volume)})
+      |> Repo.all()
+      |> Map.new()
+
+    Date.range(start_date, end_date)
+    |> Enum.map(fn date ->
+      %{date: date, total_ml: Map.get(daily_totals, date, 0), goal: goal}
+    end)
+  end
+
+  @doc """
   Returns all water intakes for a user on a given date, ordered by time desc.
   No pagination — returns the full list for dashboard display.
   """

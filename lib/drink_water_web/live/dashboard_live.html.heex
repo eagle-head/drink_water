@@ -53,8 +53,12 @@
 
   <div class="card bg-base-200 shadow-sm mt-4">
     <div class="card-body">
-      <h2 class="card-title">{gettext("Weekly Summary")}</h2>
-      <p class="text-base-content/60">{gettext("Coming soon...")}</p>
+      <.live_component
+        module={DrinkWaterWeb.WeeklySummaryComponent}
+        id="weekly-summary"
+        user_id={@user.id}
+        goal={@goal}
+      />
     </div>
   </div>
 </div>
