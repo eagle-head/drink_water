@@ -19,14 +19,19 @@ defmodule DrinkWaterWeb.HistoryComponent do
   end
 
   @impl true
-  def handle_event("delete", %{"id" => id}, socket) do
-    id = String.to_integer(id)
+  def handle_event("delete", %{"id" => id_str}, socket) do
+    case Integer.parse(id_str) do
+      {id, ""} ->
+        case HydrationTracking.delete_water_intake_by_id(socket.assigns.user_id, id) do
+          {:ok, _} ->
+            {:noreply, load_intakes(socket)}
 
-    case HydrationTracking.delete_water_intake_by_id(socket.assigns.user_id, id) do
-      {:ok, _} ->
-        {:noreply, load_intakes(socket)}
+          {:error, :not_found, :water_intake} ->
+            send(self(), {:flash, :error, gettext("Intake already removed")})
+            {:noreply, load_intakes(socket)}
+        end
 
-      {:error, :not_found, :water_intake} ->
+      _ ->
         {:noreply, socket}
     end
   end

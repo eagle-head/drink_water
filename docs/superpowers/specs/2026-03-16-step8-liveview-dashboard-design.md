@@ -75,7 +75,7 @@ directly.
 Stateful components that manage their own assigns, call contexts on events,
 and delegate rendering to function components.
 
-```
+```text
 DashboardLive              — mount, handle_params, layout grid, PubSub subscribe
 ProgressComponent          — daily progress (consumption vs goal)
 HistoryComponent           — list of today's intakes with delete
@@ -123,7 +123,7 @@ parent-dispatches pattern.
 Stateless HEEx rendering. Receive assigns, return markup. Zero logic, zero
 side effects.
 
-```
+```text
 DashboardComponents        — progress_ring, intake_card, summary_bar, etc.
 ```
 
@@ -177,7 +177,7 @@ own data from the context to avoid stale state.
 Single page, responsive grid (daisyUI cards). Collapses to single column on
 mobile.
 
-```
+```text
 +--------------------------------------------------+
 |  Header: "Hydration Dashboard" + user name       |
 +------------------------+-------------------------+
@@ -204,9 +204,9 @@ mobile.
 +--------------------------------------------------+
 |                                                  |
 |  Weekly Summary                                  |
-|  +--+--+--+--+--+--+--+                         |
-|  |Mo|Tu|We|Th|Fr|Sa|Su|  (vertical bars)        |
-|  +--+--+--+--+--+--+--+                         |
+|  +--+--+--+--+--+--+--+                          |
+|  |Mo|Tu|We|Th|Fr|Sa|Su|  (vertical bars)         |
+|  +--+--+--+--+--+--+--+                          |
 |                                                  |
 +--------------------------------------------------+
 ```

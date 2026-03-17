@@ -45,18 +45,25 @@ defmodule DrinkWaterWeb.IntakeFormComponent do
   end
 
   @impl true
-  def handle_event("quick-log", %{"volume" => volume}, socket) do
-    attrs = %{
-      date_time_utc: DateTime.utc_now(),
-      volume: String.to_integer(volume),
-      volume_unit: :ml
-    }
+  def handle_event("quick-log", %{"volume" => volume_str}, socket) do
+    case Integer.parse(volume_str) do
+      {volume, ""} ->
+        attrs = %{
+          date_time_utc: DateTime.utc_now(),
+          volume: volume,
+          volume_unit: :ml
+        }
 
-    case HydrationTracking.create_water_intake(socket.assigns.user_id, attrs) do
-      {:ok, _intake} ->
-        {:noreply, socket}
+        case HydrationTracking.create_water_intake(socket.assigns.user_id, attrs) do
+          {:ok, _intake} ->
+            {:noreply, socket}
 
-      {:error, _changeset} ->
+          {:error, _changeset} ->
+            send(self(), {:flash, :error, gettext("Failed to log water")})
+            {:noreply, socket}
+        end
+
+      _ ->
         {:noreply, socket}
     end
   end

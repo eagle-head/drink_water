@@ -6,7 +6,8 @@ defmodule DrinkWaterWeb.NextAlarmComponent do
   @impl true
   def update(assigns, socket) do
     alarm_settings = load_alarm_settings(assigns.user_id)
-    next_alarm = if alarm_settings, do: calculate_next_alarm(alarm_settings), else: nil
+    now = Map.get(assigns, :now, Time.utc_now())
+    next_alarm = if alarm_settings, do: calculate_next_alarm(alarm_settings, now), else: nil
 
     {:ok,
      socket
@@ -22,8 +23,7 @@ defmodule DrinkWaterWeb.NextAlarmComponent do
     end
   end
 
-  defp calculate_next_alarm(settings) do
-    now = Time.utc_now()
+  defp calculate_next_alarm(settings, now) do
     start_time = settings.daily_start_time
     end_time = settings.daily_end_time
     interval = settings.interval_minutes

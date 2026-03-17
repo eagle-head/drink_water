@@ -3,22 +3,28 @@ defmodule DrinkWaterWeb.DashboardLive do
 
   alias DrinkWater.UserManagement
 
-  # Hardcoded until auth is implemented (Step 10)
-  @hardcoded_user_id 1
+  # Hardcoded until auth is implemented (Step 10).
+  # Configurable via Application env for test isolation.
   @default_goal 2000
+
+  defp hardcoded_user_id do
+    Application.get_env(:drink_water, :dashboard_user_id, 1)
+  end
 
   @impl true
   def mount(_params, _session, socket) do
+    user_id = hardcoded_user_id()
+
     if connected?(socket) do
-      Phoenix.PubSub.subscribe(DrinkWater.PubSub, "user:#{@hardcoded_user_id}")
+      Phoenix.PubSub.subscribe(DrinkWater.PubSub, "user:#{user_id}")
     end
 
-    {:ok, assign(socket, page_title: gettext("Hydration Dashboard"))}
+    {:ok, assign(socket, page_title: gettext("Hydration Dashboard"), user_id: user_id)}
   end
 
   @impl true
   def handle_params(_params, _uri, socket) do
-    with {:ok, user} <- UserManagement.get_user(@hardcoded_user_id) do
+    with {:ok, user} <- UserManagement.get_user(socket.assigns.user_id) do
       goal = load_goal(user.id)
 
       {:noreply,
@@ -55,6 +61,7 @@ defmodule DrinkWaterWeb.DashboardLive do
     {:noreply, socket}
   end
 
+  @impl true
   def handle_info(:alarm_settings_updated, socket) do
     goal = load_goal(socket.assigns.user.id)
 
@@ -83,6 +90,12 @@ defmodule DrinkWaterWeb.DashboardLive do
     {:noreply, assign(socket, goal: goal)}
   end
 
+  @impl true
+  def handle_info({:flash, kind, message}, socket) do
+    {:noreply, put_flash(socket, kind, message)}
+  end
+
+  @impl true
   def handle_info(_event, socket) do
     {:noreply, socket}
   end
