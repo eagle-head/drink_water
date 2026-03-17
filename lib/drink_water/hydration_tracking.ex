@@ -145,10 +145,17 @@ defmodule DrinkWater.HydrationTracking do
   Updates a water intake.
   """
   def update_water_intake(%WaterIntake{} = water_intake, attrs) do
-    water_intake
-    |> WaterIntake.changeset(attrs)
-    |> Repo.update()
-    |> maybe_conflict(:water_intake)
+    case water_intake
+         |> WaterIntake.changeset(attrs)
+         |> Repo.update()
+         |> maybe_conflict(:water_intake) do
+      {:ok, updated} ->
+        broadcast_event(updated.user_id, :intake_updated)
+        {:ok, updated}
+
+      error ->
+        error
+    end
   end
 
   @doc """

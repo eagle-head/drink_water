@@ -40,6 +40,26 @@ defmodule DrinkWater.PubSubBroadcastTest do
       refute_receive :intake_created
     end
 
+    test "update_water_intake/2 broadcasts :intake_updated" do
+      user = user_fixture()
+      intake = water_intake_fixture(user.id)
+      Phoenix.PubSub.subscribe(DrinkWater.PubSub, "user:#{user.id}")
+
+      {:ok, _} = HydrationTracking.update_water_intake(intake, %{volume: 999})
+
+      assert_receive :intake_updated
+    end
+
+    test "update_water_intake/2 does not broadcast on failure" do
+      user = user_fixture()
+      intake = water_intake_fixture(user.id)
+      Phoenix.PubSub.subscribe(DrinkWater.PubSub, "user:#{user.id}")
+
+      {:error, _} = HydrationTracking.update_water_intake(intake, %{volume: -1})
+
+      refute_receive :intake_updated
+    end
+
     test "delete_water_intake_by_id/2 broadcasts :intake_deleted" do
       user = user_fixture()
       intake = water_intake_fixture(user.id)
