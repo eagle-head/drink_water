@@ -38,3 +38,6 @@ npm-debug.log
 # Environment variables (keep .env.example versioned)
 .env
 
+# Git worktrees
+.worktrees/
+
