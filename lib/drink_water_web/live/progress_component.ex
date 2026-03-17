@@ -3,8 +3,6 @@ defmodule DrinkWaterWeb.ProgressComponent do
 
   alias DrinkWater.HydrationTracking
 
-  import DrinkWaterWeb.DashboardComponents, only: [progress_ring: 1]
-
   @impl true
   def update(assigns, socket) do
     selected_date =
@@ -35,19 +33,26 @@ defmodule DrinkWaterWeb.ProgressComponent do
   def render(assigns) do
     ~H"""
     <div>
-      <%= if @selected_date == Date.utc_today() do %>
-        <h2 class="card-title mb-4">{gettext("Daily Progress")}</h2>
-      <% else %>
-        <h2 class="card-title mb-4">
+      <%= if @selected_date != Date.utc_today() do %>
+        <h2 class="card-title mb-2">
           {gettext("Progress")} — {Calendar.strftime(@selected_date, "%b %d, %Y")}
         </h2>
       <% end %>
-      <.progress_ring
-        percentage={@percentage}
-        total_ml={@total_ml}
-        goal={@goal}
-        intake_count={@intake_count}
-      />
+      <div class="stat place-items-center">
+        <div class="stat-figure text-primary">
+          <div
+            class="radial-progress text-primary"
+            style={"--value:#{@percentage}; --size:5rem; --thickness:0.5rem;"}
+            role="progressbar"
+          >
+            {@percentage |> Float.round(0) |> trunc()}%
+          </div>
+        </div>
+        <div class="stat-value">{@total_ml}ml</div>
+        <div class="stat-desc">
+          {gettext("Goal")}: {@goal}ml — {ngettext("1 intake", "%{count} intakes", @intake_count)}
+        </div>
+      </div>
     </div>
     """
   end

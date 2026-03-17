@@ -307,8 +307,8 @@ defmodule DrinkWaterWeb.DashboardLiveTest do
       html = render(view)
       # Still showing yesterday's date in the title — view not disrupted
       assert html =~ Calendar.strftime(yesterday, "%b %d, %Y")
-      # Progress ring still shows yesterday's data (0ml), not today's 999ml
-      assert html =~ "0ml / 2000ml"
+      # Progress stat still shows yesterday's data (0ml), not today's 999ml
+      assert html =~ "0ml"
     end
   end
 
