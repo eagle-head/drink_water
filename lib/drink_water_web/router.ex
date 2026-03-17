@@ -36,6 +36,7 @@ defmodule DrinkWaterWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+    live "/dashboard", DashboardLive
   end
 
   scope "/api", DrinkWaterWeb do
