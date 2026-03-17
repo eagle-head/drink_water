@@ -18,6 +18,7 @@ defmodule DrinkWaterWeb.DashboardLive do
 
     if connected?(socket) do
       Phoenix.PubSub.subscribe(DrinkWater.PubSub, "user:#{user_id}")
+      Process.send_after(self(), :tick_next_alarm, 60_000)
     end
 
     {:ok, assign(socket, page_title: gettext("Hydration Dashboard"), user_id: user_id)}
@@ -144,6 +145,19 @@ defmodule DrinkWaterWeb.DashboardLive do
   @impl true
   def handle_info(:cancel_edit_intake, socket) do
     {:noreply, assign(socket, editing_intake: nil)}
+  end
+
+  # Timer for countdown updates (re-arms every 60 seconds)
+  @impl true
+  def handle_info(:tick_next_alarm, socket) do
+    Process.send_after(self(), :tick_next_alarm, 60_000)
+
+    send_update(DrinkWaterWeb.NextAlarmComponent,
+      id: "next-alarm",
+      user_id: socket.assigns.user_id
+    )
+
+    {:noreply, socket}
   end
 
   # Flash from child components — auto-dismiss after 5 seconds with animation

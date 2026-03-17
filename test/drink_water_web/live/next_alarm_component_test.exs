@@ -19,7 +19,8 @@ defmodule DrinkWaterWeb.NextAlarmComponentTest do
 
       html = render_component(NextAlarmComponent, id: "test", user_id: user.id, now: ~T[05:00:00])
 
-      assert html =~ "08:00"
+      assert html =~ "Next at 08:00"
+      assert html =~ "countdown"
       assert html =~ "Every 30 min"
     end
 
@@ -52,7 +53,8 @@ defmodule DrinkWaterWeb.NextAlarmComponentTest do
       html = render_component(NextAlarmComponent, id: "test", user_id: user.id, now: ~T[10:30:00])
 
       # At 10:30, with 60min interval starting at 08:00, next alarm is 11:00
-      assert html =~ "11:00"
+      assert html =~ "Next at 11:00"
+      assert html =~ "countdown"
     end
 
     test "shows done when next alarm exceeds end time" do
@@ -68,7 +70,7 @@ defmodule DrinkWaterWeb.NextAlarmComponentTest do
       # At 19:30, next alarm would be 20:00 but end_time is 20:00
       # Time.compare(20:00, 20:00) != :gt is true, so 20:00 is valid
       html = render_component(NextAlarmComponent, id: "test", user_id: user.id, now: ~T[19:30:00])
-      assert html =~ "20:00"
+      assert html =~ "Next at 20:00"
 
       # At 19:01 with 60min interval: next would be 20:00 — valid
       # But at 20:00 exactly, Time.compare(now, end_time) != :lt is true → nil

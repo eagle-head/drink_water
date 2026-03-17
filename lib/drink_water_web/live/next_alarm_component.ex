@@ -8,12 +8,14 @@ defmodule DrinkWaterWeb.NextAlarmComponent do
     alarm_settings = load_alarm_settings(assigns.user_id)
     now = Map.get(assigns, :now, Time.utc_now())
     next_alarm = if alarm_settings, do: calculate_next_alarm(alarm_settings, now), else: nil
+    countdown = if next_alarm, do: calculate_countdown(next_alarm, now), else: nil
 
     {:ok,
      socket
      |> assign(:user_id, assigns.user_id)
      |> assign(:alarm_settings, alarm_settings)
-     |> assign(:next_alarm, next_alarm)}
+     |> assign(:next_alarm, next_alarm)
+     |> assign(:countdown, countdown)}
   end
 
   defp load_alarm_settings(user_id) do
@@ -45,6 +47,14 @@ defmodule DrinkWaterWeb.NextAlarmComponent do
     end
   end
 
+  defp calculate_countdown(next_alarm, now) do
+    diff_seconds = Time.diff(next_alarm, now, :second)
+    diff_seconds = max(diff_seconds, 0)
+    hours = div(diff_seconds, 3600)
+    minutes = div(rem(diff_seconds, 3600), 60)
+    %{hours: hours, minutes: minutes}
+  end
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -54,12 +64,23 @@ defmodule DrinkWaterWeb.NextAlarmComponent do
         <p class="label">{gettext("No alarm configured")}</p>
       <% else %>
         <%= if @next_alarm do %>
-          <p class="stat-value text-xl">{Calendar.strftime(@next_alarm, "%H:%M")}</p>
-          <p class="label">
-            {gettext("Every %{minutes} min", minutes: @alarm_settings.interval_minutes)}
+          <div class="flex items-center gap-1 font-mono text-2xl">
+            <span class="countdown">
+              <span style={"--value:#{@countdown.hours};"}></span>
+            </span>
+            :
+            <span class="countdown">
+              <span style={"--value:#{@countdown.minutes};"}></span>
+            </span>
+          </div>
+          <p class="label mt-1">
+            {gettext("Next at %{time}", time: Calendar.strftime(@next_alarm, "%H:%M"))}
           </p>
           <p class="label text-xs opacity-40">
-            {Calendar.strftime(@alarm_settings.daily_start_time, "%H:%M")} → {Calendar.strftime(
+            {gettext("Every %{minutes} min", minutes: @alarm_settings.interval_minutes)} · {Calendar.strftime(
+              @alarm_settings.daily_start_time,
+              "%H:%M"
+            )} → {Calendar.strftime(
               @alarm_settings.daily_end_time,
               "%H:%M"
             )}
