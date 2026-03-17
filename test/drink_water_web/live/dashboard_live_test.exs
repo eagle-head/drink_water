@@ -68,4 +68,51 @@ defmodule DrinkWaterWeb.DashboardLiveTest do
       refute render(view) =~ "350"
     end
   end
+
+  describe "log water form" do
+    test "submitting valid volume logs an intake", %{conn: conn} do
+      {:ok, view, _html} = live(conn, "/dashboard")
+
+      view
+      |> form("#intake-form", intake: %{volume: "250"})
+      |> render_submit()
+
+      html = render(view)
+      assert html =~ "250"
+    end
+
+    test "quick button logs preset volume", %{conn: conn} do
+      {:ok, view, _html} = live(conn, "/dashboard")
+
+      view
+      |> element("button[phx-click=\"quick-log\"][phx-value-volume=\"500\"]")
+      |> render_click()
+
+      html = render(view)
+      assert html =~ "500"
+    end
+
+    test "shows error for invalid volume", %{conn: conn} do
+      {:ok, view, _html} = live(conn, "/dashboard")
+
+      view
+      |> form("#intake-form", intake: %{volume: "0"})
+      |> render_submit()
+
+      html = render(view)
+      assert html =~ "must be greater than or equal to 1"
+    end
+
+    test "progress updates after logging water", %{conn: conn} do
+      {:ok, view, _html} = live(conn, "/dashboard")
+
+      view
+      |> form("#intake-form", intake: %{volume: "500"})
+      |> render_submit()
+
+      html = render(view)
+      assert html =~ "500ml"
+      assert html =~ "2000ml"
+    end
+  end
 end

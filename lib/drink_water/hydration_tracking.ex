@@ -100,10 +100,20 @@ defmodule DrinkWater.HydrationTracking do
   The `user_id` is set programmatically, not through user input.
   """
   def create_water_intake(user_id, attrs) do
-    %WaterIntake{user_id: user_id}
-    |> WaterIntake.changeset(attrs)
-    |> Repo.insert()
-    |> maybe_conflict(:water_intake)
+    result =
+      %WaterIntake{user_id: user_id}
+      |> WaterIntake.changeset(attrs)
+      |> Repo.insert()
+      |> maybe_conflict(:water_intake)
+
+    case result do
+      {:ok, intake} ->
+        broadcast_event(intake.user_id, :intake_created)
+        {:ok, intake}
+
+      error ->
+        error
+    end
   end
 
   @doc """

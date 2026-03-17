@@ -18,8 +18,11 @@
 
     <div class="card bg-base-200 shadow-sm">
       <div class="card-body">
-        <h2 class="card-title">{gettext("Log Water")}</h2>
-        <p class="text-base-content/60">{gettext("Coming soon...")}</p>
+        <.live_component
+          module={DrinkWaterWeb.IntakeFormComponent}
+          id="intake-form-component"
+          user_id={@user.id}
+        />
       </div>
     </div>
 
