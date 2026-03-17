@@ -47,6 +47,27 @@ defmodule DrinkWater.HydrationTracking do
   end
 
   @doc """
+  Returns daily hydration progress for a user.
+
+  The `goal` parameter comes from AlarmSettings.goal (integer, in ml).
+  """
+  def daily_progress(user_id, %Date{} = date, goal) when is_integer(goal) and goal > 0 do
+    start_of_day = DateTime.new!(date, ~T[00:00:00], "Etc/UTC")
+    end_of_day = DateTime.new!(Date.add(date, 1), ~T[00:00:00], "Etc/UTC")
+
+    {total_ml, intake_count} =
+      WaterIntake
+      |> where(user_id: ^user_id)
+      |> where([w], w.date_time_utc >= ^start_of_day and w.date_time_utc < ^end_of_day)
+      |> select([w], {coalesce(sum(w.volume), 0), count(w.id)})
+      |> Repo.one()
+
+    percentage = min(total_ml / goal * 100.0, 100.0) |> Float.round(1)
+
+    %{total_ml: total_ml, goal: goal, percentage: percentage, intake_count: intake_count}
+  end
+
+  @doc """
   Gets a single water intake scoped by user.
 
   Returns `{:ok, %WaterIntake{}}` or `{:error, :not_found, :water_intake}`.

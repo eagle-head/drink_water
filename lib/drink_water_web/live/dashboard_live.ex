@@ -5,6 +5,7 @@ defmodule DrinkWaterWeb.DashboardLive do
 
   # Hardcoded until auth is implemented (Step 10)
   @hardcoded_user_id 1
+  @default_goal 2000
 
   @impl true
   def mount(_params, _session, socket) do
@@ -17,10 +18,13 @@ defmodule DrinkWaterWeb.DashboardLive do
 
   @impl true
   def handle_params(_params, _uri, socket) do
-    case UserManagement.get_user(@hardcoded_user_id) do
-      {:ok, user} ->
-        {:noreply, assign(socket, user: user)}
+    with {:ok, user} <- UserManagement.get_user(@hardcoded_user_id) do
+      goal = load_goal(user.id)
 
+      {:noreply,
+       socket
+       |> assign(user: user, goal: goal)}
+    else
       {:error, :not_found, :user} ->
         {:noreply,
          socket
@@ -33,5 +37,12 @@ defmodule DrinkWaterWeb.DashboardLive do
   def handle_info(_event, socket) do
     # PubSub dispatch — will be expanded in later sub-steps
     {:noreply, socket}
+  end
+
+  defp load_goal(user_id) do
+    case UserManagement.get_alarm_settings_by_user(user_id) do
+      {:ok, settings} -> settings.goal
+      {:error, :not_found, :alarm_settings} -> @default_goal
+    end
   end
 end
