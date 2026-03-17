@@ -34,8 +34,22 @@ defmodule DrinkWaterWeb.DashboardLive do
   end
 
   @impl true
+  def handle_info(:intake_deleted, socket) do
+    send_update(DrinkWaterWeb.ProgressComponent,
+      id: "progress",
+      user_id: socket.assigns.user.id,
+      goal: socket.assigns.goal
+    )
+
+    send_update(DrinkWaterWeb.HistoryComponent,
+      id: "history",
+      user_id: socket.assigns.user.id
+    )
+
+    {:noreply, socket}
+  end
+
   def handle_info(_event, socket) do
-    # PubSub dispatch — will be expanded in later sub-steps
     {:noreply, socket}
   end
 

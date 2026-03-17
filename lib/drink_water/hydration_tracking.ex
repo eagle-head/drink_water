@@ -68,6 +68,21 @@ defmodule DrinkWater.HydrationTracking do
   end
 
   @doc """
+  Returns all water intakes for a user on a given date, ordered by time desc.
+  No pagination — returns the full list for dashboard display.
+  """
+  def list_daily_intakes(user_id, %Date{} = date) do
+    start_of_day = DateTime.new!(date, ~T[00:00:00], "Etc/UTC")
+    end_of_day = DateTime.new!(Date.add(date, 1), ~T[00:00:00], "Etc/UTC")
+
+    WaterIntake
+    |> where(user_id: ^user_id)
+    |> where([w], w.date_time_utc >= ^start_of_day and w.date_time_utc < ^end_of_day)
+    |> order_by([w], desc: w.date_time_utc)
+    |> Repo.all()
+  end
+
+  @doc """
   Gets a single water intake scoped by user.
 
   Returns `{:ok, %WaterIntake{}}` or `{:error, :not_found, :water_intake}`.
@@ -105,7 +120,31 @@ defmodule DrinkWater.HydrationTracking do
   Deletes a water intake.
   """
   def delete_water_intake(%WaterIntake{} = water_intake) do
-    Repo.delete(water_intake)
+    case Repo.delete(water_intake) do
+      {:ok, deleted} ->
+        broadcast_event(deleted.user_id, :intake_deleted)
+        {:ok, deleted}
+
+      error ->
+        error
+    end
+  end
+
+  @doc """
+  Deletes a water intake by user_id and intake id.
+  Independent implementation — does not delegate to delete_water_intake/1
+  to avoid double broadcasts.
+  """
+  def delete_water_intake_by_id(user_id, intake_id) do
+    with {:ok, intake} <- get_water_intake(user_id, intake_id),
+         {:ok, deleted} <- Repo.delete(intake) do
+      broadcast_event(user_id, :intake_deleted)
+      {:ok, deleted}
+    end
+  end
+
+  defp broadcast_event(user_id, event) do
+    Phoenix.PubSub.broadcast(DrinkWater.PubSub, "user:#{user_id}", event)
   end
 
   defp maybe_conflict({:error, %Ecto.Changeset{} = changeset}, resource) do

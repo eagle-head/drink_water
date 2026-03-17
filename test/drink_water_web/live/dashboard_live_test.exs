@@ -40,4 +40,32 @@ defmodule DrinkWaterWeb.DashboardLiveTest do
       assert html =~ "2000ml"
     end
   end
+
+  describe "today's history" do
+    test "shows today's intakes", %{conn: conn} do
+      water_intake_fixture(1, %{date_time_utc: DateTime.utc_now(), volume: 250})
+
+      {:ok, _view, html} = live(conn, "/dashboard")
+
+      assert html =~ "250"
+    end
+
+    test "shows empty state when no intakes", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/dashboard")
+
+      assert html =~ "No water logged today"
+    end
+
+    test "deleting an intake removes it from the list", %{conn: conn} do
+      intake = water_intake_fixture(1, %{date_time_utc: DateTime.utc_now(), volume: 350})
+
+      {:ok, view, _html} = live(conn, "/dashboard")
+
+      view
+      |> element("[data-intake-id=\"#{intake.id}\"] button[phx-click=\"delete\"]")
+      |> render_click()
+
+      refute render(view) =~ "350"
+    end
+  end
 end

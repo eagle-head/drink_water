@@ -60,4 +60,70 @@ defmodule DrinkWater.HydrationTrackingDashboardTest do
       assert result.intake_count == 1
     end
   end
+
+  describe "list_daily_intakes/2" do
+    test "returns empty list when no intakes" do
+      user = user_fixture()
+      assert [] = HydrationTracking.list_daily_intakes(user.id, Date.utc_today())
+    end
+
+    test "returns intakes ordered by time desc" do
+      user = user_fixture()
+      now = DateTime.utc_now()
+      earlier = DateTime.add(now, -3600, :second)
+
+      water_intake_fixture(user.id, %{date_time_utc: earlier, volume: 200})
+      water_intake_fixture(user.id, %{date_time_utc: now, volume: 500})
+
+      intakes = HydrationTracking.list_daily_intakes(user.id, Date.utc_today())
+      assert length(intakes) == 2
+      assert hd(intakes).volume == 500
+      assert List.last(intakes).volume == 200
+    end
+
+    test "excludes intakes from other days" do
+      user = user_fixture()
+      yesterday = Date.add(Date.utc_today(), -1)
+
+      water_intake_fixture(user.id, %{
+        date_time_utc: DateTime.new!(yesterday, ~T[10:00:00], "Etc/UTC"),
+        volume: 300
+      })
+
+      water_intake_fixture(user.id, %{date_time_utc: DateTime.utc_now(), volume: 500})
+
+      intakes = HydrationTracking.list_daily_intakes(user.id, Date.utc_today())
+      assert length(intakes) == 1
+      assert hd(intakes).volume == 500
+    end
+  end
+
+  describe "delete_water_intake_by_id/2" do
+    test "deletes an existing intake" do
+      user = user_fixture()
+      intake = water_intake_fixture(user.id)
+
+      assert {:ok, deleted} = HydrationTracking.delete_water_intake_by_id(user.id, intake.id)
+      assert deleted.id == intake.id
+
+      assert {:error, :not_found, :water_intake} =
+               HydrationTracking.get_water_intake(user.id, intake.id)
+    end
+
+    test "returns error for nonexistent intake" do
+      user = user_fixture()
+
+      assert {:error, :not_found, :water_intake} =
+               HydrationTracking.delete_water_intake_by_id(user.id, 0)
+    end
+
+    test "returns error for intake belonging to another user" do
+      user1 = user_fixture()
+      user2 = user_fixture()
+      intake = water_intake_fixture(user1.id)
+
+      assert {:error, :not_found, :water_intake} =
+               HydrationTracking.delete_water_intake_by_id(user2.id, intake.id)
+    end
+  end
 end
