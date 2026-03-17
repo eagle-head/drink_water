@@ -131,4 +131,14 @@ defmodule DrinkWaterWeb.DashboardLiveTest do
       end
     end
   end
+
+  describe "next alarm" do
+    test "shows alarm settings info", %{conn: conn} do
+      # Seeded user has alarm_settings with interval_minutes: 60
+      {:ok, _view, html} = live(conn, "/dashboard")
+
+      assert html =~ "Next Alarm"
+      assert html =~ "60"
+    end
+  end
 end
