@@ -307,8 +307,8 @@ defmodule DrinkWaterWeb.DashboardLiveTest do
       html = render(view)
       # Still showing yesterday's date in the title — view not disrupted
       assert html =~ Calendar.strftime(yesterday, "%b %d, %Y")
-      # Progress ring should NOT show 999ml (it's showing yesterday's data)
-      refute html =~ "999ml / 2000ml"
+      # Progress ring still shows yesterday's data (0ml), not today's 999ml
+      assert html =~ "0ml / 2000ml"
     end
   end
 
@@ -461,6 +461,125 @@ defmodule DrinkWaterWeb.DashboardLiveTest do
       assert html =~ "must be at or before"
       # Still in edit mode (form visible)
       assert html =~ "alarm-settings-form"
+    end
+  end
+
+  describe "edit intake" do
+    setup %{user: user} do
+      alarm_settings_fixture(user, %{goal: 2000, interval_minutes: 60})
+      :ok
+    end
+
+    test "edit button opens modal with intake data", %{conn: conn, user: user} do
+      intake = water_intake_fixture(user.id, %{date_time_utc: DateTime.utc_now(), volume: 300})
+
+      {:ok, view, _html} = live(conn, "/dashboard")
+
+      view
+      |> element("[data-intake-id=\"#{intake.id}\"] button[phx-click=\"edit\"]")
+      |> render_click()
+
+      html = render(view)
+      assert html =~ "Edit Intake"
+      assert html =~ "300"
+    end
+
+    test "submitting valid edit updates intake and closes modal", %{conn: conn, user: user} do
+      intake = water_intake_fixture(user.id, %{date_time_utc: DateTime.utc_now(), volume: 300})
+
+      {:ok, view, _html} = live(conn, "/dashboard")
+
+      view
+      |> element("[data-intake-id=\"#{intake.id}\"] button[phx-click=\"edit\"]")
+      |> render_click()
+
+      view
+      |> form("#edit-intake-form", intake: %{volume: "500"})
+      |> render_submit()
+
+      html = render(view)
+      refute html =~ "Edit Intake"
+      assert html =~ "500"
+      assert html =~ "Intake updated!"
+    end
+
+    test "submitting invalid edit shows validation errors", %{conn: conn, user: user} do
+      intake = water_intake_fixture(user.id, %{date_time_utc: DateTime.utc_now(), volume: 300})
+
+      {:ok, view, _html} = live(conn, "/dashboard")
+
+      view
+      |> element("[data-intake-id=\"#{intake.id}\"] button[phx-click=\"edit\"]")
+      |> render_click()
+
+      view
+      |> form("#edit-intake-form", intake: %{volume: "0"})
+      |> render_submit()
+
+      html = render(view)
+      assert html =~ "Edit Intake"
+      assert html =~ "must be greater than or equal to 1"
+    end
+
+    test "cancel closes modal without changes", %{conn: conn, user: user} do
+      intake = water_intake_fixture(user.id, %{date_time_utc: DateTime.utc_now(), volume: 300})
+
+      {:ok, view, _html} = live(conn, "/dashboard")
+
+      view
+      |> element("[data-intake-id=\"#{intake.id}\"] button[phx-click=\"edit\"]")
+      |> render_click()
+
+      assert render(view) =~ "Edit Intake"
+
+      view
+      |> element("#edit-intake-form button[phx-click=\"cancel\"]")
+      |> render_click()
+
+      html = render(view)
+      refute html =~ "Edit Intake"
+      assert html =~ "300"
+    end
+
+    test "editing date_time_utc to another day removes intake from current view",
+         %{conn: conn, user: user} do
+      intake = water_intake_fixture(user.id, %{date_time_utc: DateTime.utc_now(), volume: 300})
+
+      {:ok, view, _html} = live(conn, "/dashboard")
+
+      view
+      |> element("[data-intake-id=\"#{intake.id}\"] button[phx-click=\"edit\"]")
+      |> render_click()
+
+      yesterday_str = Date.add(Date.utc_today(), -1) |> Date.to_string()
+
+      view
+      |> form("#edit-intake-form",
+        intake: %{
+          volume: "300",
+          date_time_utc: "#{yesterday_str}T10:00:00"
+        }
+      )
+      |> render_submit()
+
+      html = render(view)
+      refute html =~ "data-intake-id=\"#{intake.id}\""
+    end
+
+    test "clicking edit on deleted intake shows error flash", %{conn: conn, user: user} do
+      intake = water_intake_fixture(user.id, %{date_time_utc: DateTime.utc_now(), volume: 300})
+
+      {:ok, view, _html} = live(conn, "/dashboard")
+
+      DrinkWater.Repo.delete!(intake)
+
+      view
+      |> element("[data-intake-id=\"#{intake.id}\"] button[phx-click=\"edit\"]")
+      |> render_click()
+
+      html = render(view)
+      assert html =~ "Intake not found"
+      refute html =~ "Edit Intake"
     end
   end
 end
