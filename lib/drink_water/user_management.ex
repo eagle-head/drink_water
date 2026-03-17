@@ -162,9 +162,21 @@ defmodule DrinkWater.UserManagement do
   Updates alarm settings.
   """
   def update_alarm_settings(%AlarmSettings{} = alarm_settings, attrs) do
-    alarm_settings
-    |> AlarmSettings.changeset(attrs)
-    |> Repo.update()
+    case alarm_settings
+         |> AlarmSettings.changeset(attrs)
+         |> Repo.update() do
+      {:ok, updated} ->
+        Phoenix.PubSub.broadcast(
+          DrinkWater.PubSub,
+          "user:#{updated.user_id}",
+          :alarm_settings_updated
+        )
+
+        {:ok, updated}
+
+      error ->
+        error
+    end
   end
 
   @doc """

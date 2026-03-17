@@ -55,6 +55,34 @@ defmodule DrinkWaterWeb.DashboardLive do
     {:noreply, socket}
   end
 
+  def handle_info(:alarm_settings_updated, socket) do
+    goal = load_goal(socket.assigns.user.id)
+
+    send_update(DrinkWaterWeb.ProgressComponent,
+      id: "progress",
+      user_id: socket.assigns.user.id,
+      goal: goal
+    )
+
+    send_update(DrinkWaterWeb.NextAlarmComponent,
+      id: "next-alarm",
+      user_id: socket.assigns.user.id
+    )
+
+    send_update(DrinkWaterWeb.AlarmSettingsComponent,
+      id: "alarm-settings",
+      user_id: socket.assigns.user.id
+    )
+
+    send_update(DrinkWaterWeb.WeeklySummaryComponent,
+      id: "weekly-summary",
+      user_id: socket.assigns.user.id,
+      goal: goal
+    )
+
+    {:noreply, assign(socket, goal: goal)}
+  end
+
   def handle_info(_event, socket) do
     {:noreply, socket}
   end

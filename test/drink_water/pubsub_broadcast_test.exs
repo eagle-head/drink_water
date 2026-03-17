@@ -50,4 +50,28 @@ defmodule DrinkWater.PubSubBroadcastTest do
       assert_receive :intake_deleted
     end
   end
+
+  alias DrinkWater.UserManagement
+
+  describe "UserManagement broadcasts" do
+    test "update_alarm_settings/2 broadcasts :alarm_settings_updated" do
+      user = user_fixture()
+      settings = alarm_settings_fixture(user)
+      Phoenix.PubSub.subscribe(DrinkWater.PubSub, "user:#{user.id}")
+
+      {:ok, _} = UserManagement.update_alarm_settings(settings, %{goal: 2500})
+
+      assert_receive :alarm_settings_updated
+    end
+
+    test "update_alarm_settings/2 does not broadcast on failure" do
+      user = user_fixture()
+      settings = alarm_settings_fixture(user)
+      Phoenix.PubSub.subscribe(DrinkWater.PubSub, "user:#{user.id}")
+
+      {:error, _} = UserManagement.update_alarm_settings(settings, %{goal: -1})
+
+      refute_receive :alarm_settings_updated
+    end
+  end
 end

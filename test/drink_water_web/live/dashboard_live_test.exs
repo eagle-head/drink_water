@@ -141,4 +141,40 @@ defmodule DrinkWaterWeb.DashboardLiveTest do
       assert html =~ "60"
     end
   end
+
+  describe "alarm settings" do
+    test "shows current alarm settings", %{conn: conn} do
+      # Seeded user has goal: 2000, interval_minutes: 60
+      {:ok, _view, html} = live(conn, "/dashboard")
+
+      assert html =~ "Alarm Settings"
+      assert html =~ "2000"
+      assert html =~ "60"
+    end
+
+    test "editing alarm settings updates dependent components", %{conn: conn} do
+      {:ok, view, _html} = live(conn, "/dashboard")
+
+      # Open edit mode
+      view
+      |> element("button[phx-click=\"edit-settings\"]")
+      |> render_click()
+
+      # Submit new settings
+      view
+      |> form("#alarm-settings-form",
+        alarm_settings: %{
+          goal: "2500",
+          interval_minutes: "45",
+          daily_start_time: "08:00",
+          daily_end_time: "20:00"
+        }
+      )
+      |> render_submit()
+
+      html = render(view)
+      assert html =~ "2500"
+      assert html =~ "45"
+    end
+  end
 end
