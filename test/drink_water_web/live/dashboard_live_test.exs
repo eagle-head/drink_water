@@ -245,6 +245,73 @@ defmodule DrinkWaterWeb.DashboardLiveTest do
     end
   end
 
+  describe "date navigation" do
+    setup %{user: user} do
+      alarm_settings_fixture(user, %{goal: 2000, interval_minutes: 60})
+      :ok
+    end
+
+    test "title shows date when viewing a past day", %{conn: conn, user: user} do
+      yesterday = Date.add(Date.utc_today(), -1)
+
+      water_intake_fixture(user.id, %{
+        date_time_utc: DateTime.new!(yesterday, ~T[10:00:00], "Etc/UTC"),
+        volume: 300
+      })
+
+      {:ok, view, _html} = live(conn, "/dashboard")
+
+      view
+      |> element("button[phx-click=\"nav-prev\"]")
+      |> render_click()
+
+      html = render(view)
+      assert html =~ Calendar.strftime(yesterday, "%b %d, %Y")
+      assert html =~ "300"
+    end
+
+    test "→ button is disabled when viewing today", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/dashboard")
+
+      assert html =~ "btn-disabled"
+    end
+
+    test "Today button is hidden when viewing today", %{conn: conn} do
+      {:ok, _view, html} = live(conn, "/dashboard")
+
+      refute html =~ "nav-today"
+    end
+
+    test "Today button appears and works when viewing past day", %{conn: conn} do
+      {:ok, view, _html} = live(conn, "/dashboard")
+
+      view |> element("button[phx-click=\"nav-prev\"]") |> render_click()
+      html = render(view)
+      assert html =~ "nav-today"
+
+      view |> element("button[phx-click=\"nav-today\"]") |> render_click()
+      html = render(view)
+      assert html =~ "Today"
+    end
+
+    test "PubSub intake_created does not disrupt past day view", %{conn: conn, user: user} do
+      {:ok, view, _html} = live(conn, "/dashboard")
+      yesterday = Date.add(Date.utc_today(), -1)
+
+      view |> element("button[phx-click=\"nav-prev\"]") |> render_click()
+      html = render(view)
+      assert html =~ Calendar.strftime(yesterday, "%b %d, %Y")
+
+      water_intake_fixture(user.id, %{date_time_utc: DateTime.utc_now(), volume: 999})
+
+      html = render(view)
+      # Still showing yesterday's date in the title — view not disrupted
+      assert html =~ Calendar.strftime(yesterday, "%b %d, %Y")
+      # Progress ring should NOT show 999ml (it's showing yesterday's data)
+      refute html =~ "999ml / 2000ml"
+    end
+  end
+
   describe "next alarm" do
     setup %{user: user} do
       alarm_settings_fixture(user, %{goal: 2000, interval_minutes: 60})
