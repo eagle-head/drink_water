@@ -116,8 +116,8 @@ defmodule DrinkWaterWeb.AlarmSettingsComponent do
             phx-target={@myself}
             class="space-y-3"
           >
-            <div class="form-control">
-              <label class="label">{gettext("Goal (ml)")}</label>
+            <fieldset class="fieldset">
+              <legend class="fieldset-legend">{gettext("Goal (ml)")}</legend>
               <input
                 type="number"
                 name={@form[:goal].name}
@@ -127,10 +127,10 @@ defmodule DrinkWaterWeb.AlarmSettingsComponent do
                 class="input input-bordered"
               />
               <.error :for={error <- @form[:goal].errors}>{translate_error(error)}</.error>
-            </div>
+            </fieldset>
 
-            <div class="form-control">
-              <label class="label">{gettext("Interval (minutes)")}</label>
+            <fieldset class="fieldset">
+              <legend class="fieldset-legend">{gettext("Interval (minutes)")}</legend>
               <input
                 type="number"
                 name={@form[:interval_minutes].name}
@@ -142,11 +142,11 @@ defmodule DrinkWaterWeb.AlarmSettingsComponent do
               <.error :for={error <- @form[:interval_minutes].errors}>
                 {translate_error(error)}
               </.error>
-            </div>
+            </fieldset>
 
             <div class="grid grid-cols-2 gap-2">
-              <div class="form-control">
-                <label class="label">{gettext("Start time")}</label>
+              <fieldset class="fieldset">
+                <legend class="fieldset-legend">{gettext("Start time")}</legend>
                 <input
                   type="time"
                   name={@form[:daily_start_time].name}
@@ -156,9 +156,9 @@ defmodule DrinkWaterWeb.AlarmSettingsComponent do
                 <.error :for={error <- @form[:daily_start_time].errors}>
                   {translate_error(error)}
                 </.error>
-              </div>
-              <div class="form-control">
-                <label class="label">{gettext("End time")}</label>
+              </fieldset>
+              <fieldset class="fieldset">
+                <legend class="fieldset-legend">{gettext("End time")}</legend>
                 <input
                   type="time"
                   name={@form[:daily_end_time].name}
@@ -168,18 +168,18 @@ defmodule DrinkWaterWeb.AlarmSettingsComponent do
                 <.error :for={error <- @form[:daily_end_time].errors}>
                   {translate_error(error)}
                 </.error>
-              </div>
+              </fieldset>
             </div>
 
-            <div class="flex gap-2">
-              <button type="submit" class="btn btn-primary btn-sm">
+            <div class="join">
+              <button type="submit" class="join-item btn btn-primary btn-sm">
                 {gettext("Save")}
               </button>
               <button
                 type="button"
                 phx-click="cancel-edit"
                 phx-target={@myself}
-                class="btn btn-ghost btn-sm"
+                class="join-item btn btn-ghost btn-sm"
               >
                 {gettext("Cancel")}
               </button>

@@ -90,8 +90,8 @@ defmodule DrinkWaterWeb.IntakeFormComponent do
 
       <.form for={@form} id="intake-form" phx-submit="save" phx-change="validate" phx-target={@myself}>
         <div class="flex gap-2 items-end">
-          <div class="form-control flex-1">
-            <label class="label" for="intake-volume">{gettext("Custom volume (ml)")}</label>
+          <fieldset class="fieldset flex-1">
+            <legend class="fieldset-legend">{gettext("Custom volume (ml)")}</legend>
             <input
               type="number"
               id="intake-volume"
@@ -103,7 +103,7 @@ defmodule DrinkWaterWeb.IntakeFormComponent do
               placeholder={gettext("e.g. 330")}
             />
             <.error :for={error <- @form[:volume].errors}>{translate_error(error)}</.error>
-          </div>
+          </fieldset>
           <button type="submit" class="btn btn-primary">{gettext("Log")}</button>
         </div>
       </.form>

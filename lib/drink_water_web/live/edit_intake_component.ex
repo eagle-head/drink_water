@@ -61,8 +61,8 @@ defmodule DrinkWaterWeb.EditIntakeComponent do
         phx-target={@myself}
         class="space-y-3"
       >
-        <div class="form-control">
-          <label class="label">{gettext("Volume (ml)")}</label>
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">{gettext("Volume (ml)")}</legend>
           <input
             type="number"
             name={@form[:volume].name}
@@ -72,10 +72,10 @@ defmodule DrinkWaterWeb.EditIntakeComponent do
             class="input input-bordered"
           />
           <.error :for={error <- @form[:volume].errors}>{translate_error(error)}</.error>
-        </div>
+        </fieldset>
 
-        <div class="form-control">
-          <label class="label">{gettext("Date/Time (UTC)")}</label>
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">{gettext("Date/Time (UTC)")}</legend>
           <input
             type="datetime-local"
             name={@form[:date_time_utc].name}
@@ -83,17 +83,17 @@ defmodule DrinkWaterWeb.EditIntakeComponent do
             class="input input-bordered"
           />
           <.error :for={error <- @form[:date_time_utc].errors}>{translate_error(error)}</.error>
-        </div>
+        </fieldset>
 
-        <div class="flex gap-2">
-          <button type="submit" class="btn btn-primary btn-sm">
+        <div class="join">
+          <button type="submit" class="join-item btn btn-primary btn-sm">
             {gettext("Save")}
           </button>
           <button
             type="button"
             phx-click="cancel"
             phx-target={@myself}
-            class="btn btn-ghost btn-sm"
+            class="join-item btn btn-ghost btn-sm"
           >
             {gettext("Cancel")}
           </button>
