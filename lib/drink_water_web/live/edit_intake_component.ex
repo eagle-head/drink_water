@@ -52,7 +52,7 @@ defmodule DrinkWaterWeb.EditIntakeComponent do
   def render(assigns) do
     ~H"""
     <div>
-      <h3 class="text-lg font-bold mb-4">{gettext("Edit Intake")}</h3>
+      <h3 class="card-title mb-4">{gettext("Edit Intake")}</h3>
       <.form
         for={@form}
         id="edit-intake-form"

@@ -51,23 +51,23 @@ defmodule DrinkWaterWeb.NextAlarmComponent do
     <div>
       <h2 class="card-title mb-4">{gettext("Next Alarm")}</h2>
       <%= if @alarm_settings == nil do %>
-        <p class="text-base-content/60">{gettext("No alarm configured")}</p>
+        <p class="label">{gettext("No alarm configured")}</p>
       <% else %>
         <%= if @next_alarm do %>
-          <p class="text-xl font-bold">{Calendar.strftime(@next_alarm, "%H:%M")}</p>
-          <p class="text-base-content/60">
-            {gettext("Every %{minutes} minutes", minutes: @alarm_settings.interval_minutes)}
+          <p class="stat-value text-xl">{Calendar.strftime(@next_alarm, "%H:%M")}</p>
+          <p class="label">
+            {gettext("Every %{minutes} min", minutes: @alarm_settings.interval_minutes)}
           </p>
-          <p class="text-sm text-base-content/40">
+          <p class="label text-xs opacity-40">
             {Calendar.strftime(@alarm_settings.daily_start_time, "%H:%M")} → {Calendar.strftime(
               @alarm_settings.daily_end_time,
               "%H:%M"
             )}
           </p>
         <% else %>
-          <p class="text-base-content/60">{gettext("Done for today!")}</p>
-          <p class="text-sm text-base-content/40">
-            {gettext("Every %{minutes} minutes", minutes: @alarm_settings.interval_minutes)}
+          <p class="label">{gettext("Done for today!")}</p>
+          <p class="label text-xs opacity-40">
+            {gettext("Every %{minutes} min", minutes: @alarm_settings.interval_minutes)}
           </p>
         <% end %>
       <% end %>

@@ -20,7 +20,7 @@ defmodule DrinkWaterWeb.NextAlarmComponentTest do
       html = render_component(NextAlarmComponent, id: "test", user_id: user.id, now: ~T[05:00:00])
 
       assert html =~ "08:00"
-      assert html =~ "Every 30 minutes"
+      assert html =~ "Every 30 min"
     end
 
     test "shows done for today when past end time" do
@@ -36,7 +36,7 @@ defmodule DrinkWaterWeb.NextAlarmComponentTest do
       html = render_component(NextAlarmComponent, id: "test", user_id: user.id, now: ~T[21:00:00])
 
       assert html =~ "Done for today!"
-      assert html =~ "Every 30 minutes"
+      assert html =~ "Every 30 min"
     end
 
     test "shows next alarm time during active window" do
