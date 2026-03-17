@@ -37,7 +37,11 @@ defmodule DrinkWaterWeb.HistoryComponent do
   @impl true
   def handle_event("nav-next", _params, socket) do
     new_date = Date.add(socket.assigns.selected_date, 1)
-    send(self(), {:select_date, new_date})
+
+    if Date.compare(new_date, Date.utc_today()) != :gt do
+      send(self(), {:select_date, new_date})
+    end
+
     {:noreply, socket}
   end
 

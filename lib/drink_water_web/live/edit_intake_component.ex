@@ -6,12 +6,17 @@ defmodule DrinkWaterWeb.EditIntakeComponent do
 
   @impl true
   def update(assigns, socket) do
-    changeset = WaterIntake.changeset(assigns.intake, %{})
+    socket = assign(socket, :intake, assigns.intake)
 
-    {:ok,
-     socket
-     |> assign(:intake, assigns.intake)
-     |> assign(:form, to_form(changeset, as: :intake))}
+    socket =
+      if socket.assigns[:form] do
+        socket
+      else
+        changeset = WaterIntake.changeset(assigns.intake, %{})
+        assign(socket, :form, to_form(changeset, as: :intake))
+      end
+
+    {:ok, socket}
   end
 
   @impl true
