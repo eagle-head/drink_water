@@ -36,6 +36,7 @@ defmodule DrinkWaterWeb.IntakeFormComponent do
 
     case HydrationTracking.create_water_intake(socket.assigns.user_id, attrs) do
       {:ok, _intake} ->
+        send(self(), {:flash, :info, gettext("Water logged!")})
         changeset = WaterIntake.changeset(%WaterIntake{}, %{})
         {:noreply, assign(socket, form: to_form(changeset, as: :intake))}
 
@@ -56,6 +57,7 @@ defmodule DrinkWaterWeb.IntakeFormComponent do
 
         case HydrationTracking.create_water_intake(socket.assigns.user_id, attrs) do
           {:ok, _intake} ->
+            send(self(), {:flash, :info, gettext("Water logged!")})
             {:noreply, socket}
 
           {:error, _changeset} ->

@@ -200,6 +200,28 @@ defmodule DrinkWaterWeb.DashboardLiveTest do
       assert html =~ "500ml"
       assert html =~ "2000ml"
     end
+
+    test "shows success flash after logging via form", %{conn: conn} do
+      {:ok, view, _html} = live(conn, "/dashboard")
+
+      view
+      |> form("#intake-form", intake: %{volume: "250"})
+      |> render_submit()
+
+      html = render(view)
+      assert html =~ "Water logged!"
+    end
+
+    test "shows success flash after quick-log", %{conn: conn} do
+      {:ok, view, _html} = live(conn, "/dashboard")
+
+      view
+      |> element("button[phx-click=\"quick-log\"][phx-value-volume=\"500\"]")
+      |> render_click()
+
+      html = render(view)
+      assert html =~ "Water logged!"
+    end
   end
 
   describe "weekly summary" do
