@@ -37,7 +37,7 @@ config :logger, :default_handler,
 config :sentry,
   dsn:
     "https://062c4109173de7dfcb71aa7d0fd36690@o4511067883044864.ingest.us.sentry.io/4511067890319360",
-  environment_name: :prod,
+  environment_name: Mix.env(),
   enable_source_code_context: true,
   root_source_code_paths: [File.cwd!()]
 
