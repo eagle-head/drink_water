@@ -52,6 +52,20 @@ defmodule DrinkWaterWeb.Telemetry do
         unit: {:native, :millisecond}
       ),
 
+      # LiveView Metrics
+      summary("phoenix.live_view.mount.stop.duration",
+        unit: {:native, :millisecond},
+        tags: [:view]
+      ),
+      summary("phoenix.live_view.handle_event.stop.duration",
+        unit: {:native, :millisecond},
+        tags: [:event]
+      ),
+      summary("phoenix.live_view.handle_params.stop.duration",
+        unit: {:native, :millisecond},
+        tags: [:view]
+      ),
+
       # Database Metrics
       summary("drink_water.repo.query.total_time",
         unit: {:native, :millisecond},

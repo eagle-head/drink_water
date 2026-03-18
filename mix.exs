@@ -21,7 +21,6 @@ defmodule DrinkWater.MixProject do
           DrinkWater.DataCase,
           DrinkWater.Repo,
           DrinkWater.Application,
-          DrinkWaterWeb.Telemetry,
           DrinkWaterWeb.Layouts
         ]
       ]
