@@ -62,6 +62,14 @@ config :logger, :default_formatter,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
+# PromEx Prometheus metrics
+config :drink_water, DrinkWater.PromEx,
+  disabled: false,
+  manual_metrics_start_delay: :no_delay,
+  drop_metrics_groups: [],
+  grafana: :disabled,
+  metrics_server: [port: 4021, path: "/metrics"]
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"

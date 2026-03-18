@@ -20,6 +20,7 @@ defmodule DrinkWater.Application do
       # Start a worker by calling: DrinkWater.Worker.start_link(arg)
       # {DrinkWater.Worker, arg},
       # Start to serve requests, typically the last entry
+      DrinkWater.PromEx,
       DrinkWaterWeb.Endpoint
     ]
 

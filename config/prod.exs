@@ -33,5 +33,8 @@ config :logger, level: :info
 config :logger, :default_handler,
   formatter: {LoggerJSON.Formatters.Basic, metadata: [:request_id, :user_id]}
 
+# Disable PromEx metrics_server in prod (expose via authenticated Plug instead)
+config :drink_water, DrinkWater.PromEx, metrics_server: :disabled
+
 # Runtime production configuration, including reading
 # of environment variables, is done on config/runtime.exs.

@@ -21,6 +21,7 @@ defmodule DrinkWater.MixProject do
           DrinkWater.DataCase,
           DrinkWater.Repo,
           DrinkWater.Application,
+          DrinkWater.PromEx,
           DrinkWaterWeb.Layouts
         ]
       ]
@@ -80,7 +81,8 @@ defmodule DrinkWater.MixProject do
       {:dns_cluster, "~> 0.2.0"},
       {:bandit, "~> 1.5"},
       {:tzdata, "~> 1.1"},
-      {:logger_json, "~> 7.0"}
+      {:logger_json, "~> 7.0"},
+      {:prom_ex, "~> 1.11"}
     ]
   end
 
