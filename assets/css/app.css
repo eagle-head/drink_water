@@ -11,10 +11,10 @@
 @plugin "../vendor/heroicons";
 
 /* daisyUI Tailwind Plugin with built-in themes.
-   Light (default) + Dark (prefers-dark).
+   Winter (light, blue accents) + Night (dark, blue accents).
    Update daisyui.js: curl -sLO https://github.com/saadeghi/daisyui/releases/latest/download/daisyui.js */
 @plugin "../vendor/daisyui" {
-  themes: light --default, dark --prefersdark;
+  themes: winter --default, night --prefersdark;
 }
 
 /* Add variants based on LiveView classes */
@@ -23,7 +23,7 @@
 @custom-variant phx-change-loading (.phx-change-loading&, .phx-change-loading &);
 
 /* Use the data attribute for dark mode  */
-@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+@custom-variant dark (&:where([data-theme=night], [data-theme=night] *));
 
 /* Make LiveView wrapper divs transparent for layout */
 [data-phx-session], [data-phx-teleported-src] { display: contents }
