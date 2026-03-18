@@ -76,23 +76,23 @@ defmodule DrinkWaterWeb.AlarmSettingsComponent do
     <div>
       <h2 class="card-title mb-4">{gettext("Alarm Settings")}</h2>
       <%= if @alarm_settings == nil do %>
-        <p class="label">{gettext("No alarm configured")}</p>
+        <p class="text-base-content/60">{gettext("No alarm configured")}</p>
       <% else %>
         <%= unless @editing do %>
-          <dl class="space-y-1 text-sm">
+          <dl class="space-y-2">
             <div class="flex justify-between">
-              <dt class="label">{gettext("Goal")}</dt>
-              <dd class="font-medium">{@alarm_settings.goal}ml</dd>
+              <dt class="label text-sm">{gettext("Goal")}</dt>
+              <dd class="font-medium text-base">{@alarm_settings.goal}ml</dd>
             </div>
             <div class="flex justify-between">
-              <dt class="label">{gettext("Interval")}</dt>
-              <dd class="font-medium">
+              <dt class="label text-sm">{gettext("Interval")}</dt>
+              <dd class="font-medium text-base">
                 {@alarm_settings.interval_minutes} {gettext("min")}
               </dd>
             </div>
             <div class="flex justify-between">
-              <dt class="label">{gettext("Hours")}</dt>
-              <dd class="font-medium">
+              <dt class="label text-sm">{gettext("Hours")}</dt>
+              <dd class="font-medium text-base">
                 {Calendar.strftime(@alarm_settings.daily_start_time, "%H:%M")} → {Calendar.strftime(
                   @alarm_settings.daily_end_time,
                   "%H:%M"

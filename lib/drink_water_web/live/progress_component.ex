@@ -49,7 +49,7 @@ defmodule DrinkWaterWeb.ProgressComponent do
           </div>
         </div>
         <div class="stat-value">{@total_ml}ml</div>
-        <div class="stat-desc">
+        <div class="stat-desc text-sm">
           {gettext("Goal")}: {@goal}ml — {ngettext("1 intake", "%{count} intakes", @intake_count)}
         </div>
       </div>

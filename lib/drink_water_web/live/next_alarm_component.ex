@@ -61,7 +61,7 @@ defmodule DrinkWaterWeb.NextAlarmComponent do
     <div>
       <h2 class="card-title mb-4">{gettext("Next Alarm")}</h2>
       <%= if @alarm_settings == nil do %>
-        <p class="label">{gettext("No alarm configured")}</p>
+        <p class="text-base-content/60">{gettext("No alarm configured")}</p>
       <% else %>
         <%= if @next_alarm do %>
           <div class="flex items-center gap-1 font-mono text-2xl">
@@ -73,10 +73,10 @@ defmodule DrinkWaterWeb.NextAlarmComponent do
               <span style={"--value:#{@countdown.minutes};"}></span>
             </span>
           </div>
-          <p class="label mt-1">
+          <p class="text-sm text-base-content/60 mt-1">
             {gettext("Next at %{time}", time: Calendar.strftime(@next_alarm, "%H:%M"))}
           </p>
-          <p class="label text-xs opacity-40">
+          <p class="text-sm text-base-content/60">
             {gettext("Every %{minutes} min", minutes: @alarm_settings.interval_minutes)} · {Calendar.strftime(
               @alarm_settings.daily_start_time,
               "%H:%M"
@@ -86,8 +86,8 @@ defmodule DrinkWaterWeb.NextAlarmComponent do
             )}
           </p>
         <% else %>
-          <p class="label">{gettext("Done for today!")}</p>
-          <p class="label text-xs opacity-40">
+          <p class="text-base-content/60">{gettext("Done for today!")}</p>
+          <p class="text-sm text-base-content/60">
             {gettext("Every %{minutes} min", minutes: @alarm_settings.interval_minutes)}
           </p>
         <% end %>

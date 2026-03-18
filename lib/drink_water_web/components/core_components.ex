@@ -302,7 +302,7 @@ defmodule DrinkWaterWeb.CoreComponents do
 
   def error(assigns) do
     ~H"""
-    <p class="label text-error text-xs">
+    <p class="label text-error text-sm">
       <.icon name="hero-exclamation-circle" class="size-4" />
       {render_slot(@inner_block)}
     </p>
