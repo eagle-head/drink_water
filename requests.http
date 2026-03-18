@@ -1,38 +1,19 @@
 ### Variables
-# After running: mix run priv/repo/seeds.exs
-# (IDs always start from 1 — seeds truncate tables and reset sequences)
-# Seed users: John (1), Jane (2), Alex (3)
+# After running: mix ecto.reset && mix run priv/repo/seeds.exs
+# Seeds truncate tables and reset sequences — IDs always start from 1.
+# Seed data: John Doe (id=1), alarm_settings (goal=2000, interval=60min,
+#   start=08:00, end=20:00), 5 water intakes on 2024-08-14.
 @baseUrl = http://localhost:4000/api
 @johnId = 1
-@janeId = 2
-@alexId = 3
 
 ###############################################################################
-# Users
+# User CRUD
 ###############################################################################
 
-### Get John
+### Show John
 GET {{baseUrl}}/users/{{johnId}}
 
-### Create a new user
-POST {{baseUrl}}/users
-Content-Type: application/json
-
-{
-  "user": {
-    "email": "mary.jane@example.com",
-    "first_name": "Mary",
-    "last_name": "Jane",
-    "birth_date": "1998-03-20",
-    "biological_sex": "female",
-    "weight": 62.0,
-    "weight_unit": "kg",
-    "height": 165.0,
-    "height_unit": "cm"
-  }
-}
-
-### Update John's weight
+### Update John (partial — only changed fields required)
 PUT {{baseUrl}}/users/{{johnId}}
 Content-Type: application/json
 
@@ -42,20 +23,36 @@ Content-Type: application/json
   }
 }
 
-### Delete John (cuidado: cascade deleta alarm_settings e water_intakes)
+### Update John (full — all fields)
+PUT {{baseUrl}}/users/{{johnId}}
+Content-Type: application/json
+
+{
+  "user": {
+    "email": "john.doe@test.com",
+    "first_name": "John",
+    "last_name": "Doe",
+    "birth_date": "1990-01-01",
+    "biological_sex": "male",
+    "weight": 70.5,
+    "weight_unit": "kg",
+    "height": 175.0,
+    "height_unit": "cm"
+  }
+}
+
+### Delete John (cascade: deletes alarm_settings + water_intakes)
+# Idempotent — returns 204 even if user does not exist.
 DELETE {{baseUrl}}/users/{{johnId}}
 
 ###############################################################################
-# Alarm Settings
+# Alarm Settings CRUD
 ###############################################################################
 
-### Get John's alarm settings
+### Show John's alarm settings
 GET {{baseUrl}}/users/{{johnId}}/alarm_settings
 
-### Get Jane's alarm settings
-GET {{baseUrl}}/users/{{janeId}}/alarm_settings
-
-### Update John's alarm settings
+### Update John's alarm settings (partial)
 PUT {{baseUrl}}/users/{{johnId}}/alarm_settings
 Content-Type: application/json
 
@@ -66,54 +63,58 @@ Content-Type: application/json
   }
 }
 
-### Delete Alex's alarm settings
-DELETE {{baseUrl}}/users/{{alexId}}/alarm_settings
+### Update John's alarm settings (full)
+PUT {{baseUrl}}/users/{{johnId}}/alarm_settings
+Content-Type: application/json
 
-### Recreate Alex's alarm settings (after delete)
-POST {{baseUrl}}/users/{{alexId}}/alarm_settings
+{
+  "alarm_settings": {
+    "goal": 3000,
+    "interval_minutes": 30,
+    "daily_start_time": "07:00:00",
+    "daily_end_time": "21:00:00"
+  }
+}
+
+### Delete John's alarm settings
+DELETE {{baseUrl}}/users/{{johnId}}/alarm_settings
+
+### Recreate John's alarm settings (after delete)
+POST {{baseUrl}}/users/{{johnId}}/alarm_settings
 Content-Type: application/json
 
 {
   "alarm_settings": {
     "goal": 2000,
-    "interval_minutes": 30,
+    "interval_minutes": 60,
     "daily_start_time": "08:00:00",
-    "daily_end_time": "21:00:00"
+    "daily_end_time": "20:00:00"
   }
 }
 
 ###############################################################################
-# Water Intakes
+# Water Intakes CRUD
 ###############################################################################
 
-### List John's water intakes (start_date and end_date are required, format: UTC datetime)
+### List John's intakes (seed data — start_date and end_date required, UTC)
 GET {{baseUrl}}/users/{{johnId}}/water_intakes?start_date=2024-08-14T00:00:00Z&end_date=2024-08-14T23:59:59Z
 
-### List with volume filter (only 200-350ml)
-GET {{baseUrl}}/users/{{janeId}}/water_intakes?start_date=2024-08-14T00:00:00Z&end_date=2024-08-14T23:59:59Z&min_volume=200&max_volume=350
+### Get a specific intake
+GET {{baseUrl}}/users/{{johnId}}/water_intakes/1
 
-### List with pagination (2 per page)
-GET {{baseUrl}}/users/{{alexId}}/water_intakes?start_date=2024-08-14T00:00:00Z&end_date=2024-08-14T23:59:59Z&size=2
-
-### Next page (replace cursor with next_cursor from response above)
-GET {{baseUrl}}/users/{{alexId}}/water_intakes?start_date=2024-08-14T00:00:00Z&end_date=2024-08-14T23:59:59Z&size=2&cursor=REPLACE_WITH_CURSOR
-
-### Create water intake for John
+### Create intake (use current UTC timestamp for LiveView real-time test)
 POST {{baseUrl}}/users/{{johnId}}/water_intakes
 Content-Type: application/json
 
 {
   "water_intake": {
-    "date_time_utc": "2024-08-14T16:00:00Z",
-    "volume": 350,
+    "date_time_utc": "2026-03-18T00:58:00Z",
+    "volume": 550,
     "volume_unit": "ml"
   }
 }
 
-### Get specific water intake (replace with real ID from list/create response)
-GET {{baseUrl}}/users/{{johnId}}/water_intakes/1
-
-### Update water intake
+### Update intake (partial — only changed fields)
 PUT {{baseUrl}}/users/{{johnId}}/water_intakes/1
 Content-Type: application/json
 
@@ -123,35 +124,82 @@ Content-Type: application/json
   }
 }
 
-### Delete water intake
+### Delete intake
 DELETE {{baseUrl}}/users/{{johnId}}/water_intakes/1
 
 ###############################################################################
-# Error Responses (RFC 7807 Problem Details)
-# Each request below triggers a specific error type from the catalog.
+# Water Intakes — Filtering
+###############################################################################
+
+### Filter by volume range (only 200-350ml)
+GET {{baseUrl}}/users/{{johnId}}/water_intakes?start_date=2024-08-14T00:00:00Z&end_date=2024-08-14T23:59:59Z&min_volume=200&max_volume=350
+
+### Filter by minimum volume only
+GET {{baseUrl}}/users/{{johnId}}/water_intakes?start_date=2024-08-14T00:00:00Z&end_date=2024-08-14T23:59:59Z&min_volume=400
+
+### Filter by maximum volume only
+GET {{baseUrl}}/users/{{johnId}}/water_intakes?start_date=2024-08-14T00:00:00Z&end_date=2024-08-14T23:59:59Z&max_volume=300
+
+###############################################################################
+# Water Intakes — Sorting
+# sort_field: date_time_utc (default) | volume | id
+# sort_direction: desc (default) | asc
+###############################################################################
+
+### Sort by volume ascending
+GET {{baseUrl}}/users/{{johnId}}/water_intakes?start_date=2024-08-14T00:00:00Z&end_date=2024-08-14T23:59:59Z&sort_field=volume&sort_direction=asc
+
+### Sort by date ascending (oldest first)
+GET {{baseUrl}}/users/{{johnId}}/water_intakes?start_date=2024-08-14T00:00:00Z&end_date=2024-08-14T23:59:59Z&sort_field=date_time_utc&sort_direction=asc
+
+### Sort by volume descending
+GET {{baseUrl}}/users/{{johnId}}/water_intakes?start_date=2024-08-14T00:00:00Z&end_date=2024-08-14T23:59:59Z&sort_field=volume&sort_direction=desc
+
+###############################################################################
+# Water Intakes — Cursor-based Pagination
+###############################################################################
+
+### First page (2 per page)
+GET {{baseUrl}}/users/{{johnId}}/water_intakes?start_date=2024-08-14T00:00:00Z&end_date=2024-08-14T23:59:59Z&size=2
+
+### Next page (replace cursor with next_cursor from response above)
+GET {{baseUrl}}/users/{{johnId}}/water_intakes?start_date=2024-08-14T00:00:00Z&end_date=2024-08-14T23:59:59Z&size=2&cursor=REPLACE_WITH_CURSOR
+
+### Sort + pagination combined
+GET {{baseUrl}}/users/{{johnId}}/water_intakes?start_date=2024-08-14T00:00:00Z&end_date=2024-08-14T23:59:59Z&sort_field=volume&sort_direction=desc&size=2
+
+###############################################################################
+# Error Catalog (RFC 7807 Problem Details)
+# All errors return application/problem+json with type, title, status, detail.
 # Run seeds first: mix ecto.reset && mix run priv/repo/seeds.exs
 ###############################################################################
 
-### 404 — User not found
-# type: user-not-found
+# --- 400 Bad Request ---
+
+### 400 — Malformed JSON (parsing-error)
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{this is not valid json}
+
+### 400 — Invalid cursor (invalid-argument)
+GET {{baseUrl}}/users/{{johnId}}/water_intakes?start_date=2024-08-14T00:00:00Z&end_date=2024-08-14T23:59:59Z&cursor=not-a-valid-cursor
+
+# --- 404 Not Found ---
+
+### 404 — User not found (user-not-found)
 GET {{baseUrl}}/users/999
 
-### 404 — Alarm settings not found (user 4 has no alarm settings after fresh seed with ecto.reset)
-# type: alarm-settings-not-found
-# Note: use a user that exists but has no alarm settings, or delete one first
-DELETE {{baseUrl}}/users/{{alexId}}/alarm_settings
+### 404 — Alarm settings not found (alarm-settings-not-found)
+# Requires deleting John's alarm settings first.
+GET {{baseUrl}}/users/{{johnId}}/alarm_settings
 
-###
-
-GET {{baseUrl}}/users/{{alexId}}/alarm_settings
-
-### 404 — Water intake not found
-# type: waterintake-not-found
+### 404 — Water intake not found (waterintake-not-found)
 GET {{baseUrl}}/users/{{johnId}}/water_intakes/999
 
-### 409 — User already exists (duplicate email)
-# type: user-already-exists
-# Seeds already created john.doe@test.com, so this conflicts
+# --- 409 Conflict ---
+
+### 409 — Duplicate email (user-already-exists)
 POST {{baseUrl}}/users
 Content-Type: application/json
 
@@ -169,9 +217,7 @@ Content-Type: application/json
   }
 }
 
-### 409 — Alarm settings already exist (duplicate per user)
-# type: alarm-settings-already-exists
-# John already has alarm settings from seeds
+### 409 — Alarm settings already exist (alarm-settings-already-exists)
 POST {{baseUrl}}/users/{{johnId}}/alarm_settings
 Content-Type: application/json
 
@@ -184,9 +230,8 @@ Content-Type: application/json
   }
 }
 
-### 409 — Water intake duplicate datetime
-# type: waterintake-duplicate-datetime
-# John already has a record at 2024-08-14T10:00:00Z from seeds
+### 409 — Duplicate datetime (waterintake-duplicate-datetime)
+# John already has a record at 2024-08-14T10:00:00Z from seeds.
 POST {{baseUrl}}/users/{{johnId}}/water_intakes
 Content-Type: application/json
 
@@ -198,8 +243,9 @@ Content-Type: application/json
   }
 }
 
-### 422 — Validation error (missing required fields)
-# type: validation-error
+# --- 422 Unprocessable Entity ---
+
+### 422 — Missing required fields (validation-error)
 POST {{baseUrl}}/users
 Content-Type: application/json
 
@@ -209,90 +255,25 @@ Content-Type: application/json
   }
 }
 
-### 400 — Invalid argument (bad cursor)
-# type: invalid-argument
-GET {{baseUrl}}/users/{{johnId}}/water_intakes?start_date=2024-08-14T00:00:00Z&end_date=2024-08-14T23:59:59Z&cursor=not-a-valid-cursor
-
-### 400 — Malformed JSON (parsing error)
-# type: parsing-error
-POST {{baseUrl}}/users
-Content-Type: application/json
-
-{this is not valid json}
-
-###############################################################################
-# Step 7a — Name Format Validation
-# Names must contain only Unicode letters, spaces, hyphens, or apostrophes.
-###############################################################################
-
-### 422 — Name with numbers (rejected)
-POST {{baseUrl}}/users
+### 422 — Name with numbers (validation-error)
+PUT {{baseUrl}}/users/{{johnId}}
 Content-Type: application/json
 
 {
   "user": {
-    "email": "invalid.name@example.com",
-    "first_name": "John123",
-    "last_name": "Doe",
-    "birth_date": "1990-01-01",
-    "biological_sex": "male",
-    "weight": 75.0,
-    "weight_unit": "kg",
-    "height": 175.0,
-    "height_unit": "cm"
+    "first_name": "John123"
   }
 }
 
-### 422 — Name with special characters (rejected)
-POST {{baseUrl}}/users
+### 422 — Name with XSS attempt (validation-error)
+PUT {{baseUrl}}/users/{{johnId}}
 Content-Type: application/json
 
 {
   "user": {
-    "email": "xss.name@example.com",
-    "first_name": "John",
-    "last_name": "Doe<script>",
-    "birth_date": "1990-01-01",
-    "biological_sex": "male",
-    "weight": 75.0,
-    "weight_unit": "kg",
-    "height": 175.0,
-    "height_unit": "cm"
+    "last_name": "Doe<script>"
   }
 }
-
-### 201 — Accented and compound names (accepted)
-POST {{baseUrl}}/users
-Content-Type: application/json
-
-{
-  "user": {
-    "email": "jose.obrien@example.com",
-    "first_name": "José",
-    "last_name": "O'Brien-Silva",
-    "birth_date": "1990-01-01",
-    "biological_sex": "male",
-    "weight": 75.0,
-    "weight_unit": "kg",
-    "height": 175.0,
-    "height_unit": "cm"
-  }
-}
-
-###############################################################################
-# Step 7c — Sort Field/Direction
-# Supports: sort_field=date_time_utc|volume|id, sort_direction=asc|desc
-# Default: date_time_utc desc
-###############################################################################
-
-### List sorted by volume ascending
-GET {{baseUrl}}/users/{{johnId}}/water_intakes?start_date=2024-08-14T00:00:00Z&end_date=2024-08-14T23:59:59Z&sort_field=volume&sort_direction=asc
-
-### List sorted by date ascending (oldest first)
-GET {{baseUrl}}/users/{{johnId}}/water_intakes?start_date=2024-08-14T00:00:00Z&end_date=2024-08-14T23:59:59Z&sort_field=date_time_utc&sort_direction=asc
-
-### List sorted by volume desc with pagination
-GET {{baseUrl}}/users/{{johnId}}/water_intakes?start_date=2024-08-14T00:00:00Z&end_date=2024-08-14T23:59:59Z&sort_field=volume&sort_direction=desc&size=2
 
 ### 422 — Invalid sort_field
 GET {{baseUrl}}/users/{{johnId}}/water_intakes?start_date=2024-08-14T00:00:00Z&end_date=2024-08-14T23:59:59Z&sort_field=email
@@ -300,13 +281,33 @@ GET {{baseUrl}}/users/{{johnId}}/water_intakes?start_date=2024-08-14T00:00:00Z&e
 ### 422 — Invalid sort_direction
 GET {{baseUrl}}/users/{{johnId}}/water_intakes?start_date=2024-08-14T00:00:00Z&end_date=2024-08-14T23:59:59Z&sort_direction=sideways
 
-###############################################################################
-# Step 7d — Idempotent User Delete
-# Always returns 204, even if user does not exist (prevents user enumeration).
-###############################################################################
+### 422 — Alarm settings validation (goal out of range)
+PUT {{baseUrl}}/users/{{johnId}}/alarm_settings
+Content-Type: application/json
 
-### 204 — Delete nonexistent user (idempotent, no error)
+{
+  "alarm_settings": {
+    "goal": 5,
+    "interval_minutes": 999
+  }
+}
+
+### 422 — Water intake validation (volume out of range)
+POST {{baseUrl}}/users/{{johnId}}/water_intakes
+Content-Type: application/json
+
+{
+  "water_intake": {
+    "date_time_utc": "2026-03-18T12:00:00Z",
+    "volume": 99999,
+    "volume_unit": "ml"
+  }
+}
+
+# --- 204 No Content (Idempotent Delete) ---
+
+### 204 — Delete nonexistent user (no error)
 DELETE {{baseUrl}}/users/999
 
-### 204 — Delete with non-numeric ID (idempotent, no error)
+### 204 — Delete with non-numeric ID (no error)
 DELETE {{baseUrl}}/users/abc
