@@ -70,6 +70,7 @@ services:
     container_name: drink_water_loki
     image: grafana/loki:3.0.0
     restart: unless-stopped
+    user: "0"
     ports:
       - "3100:3100"
     volumes:
