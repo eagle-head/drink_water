@@ -97,7 +97,7 @@ config :drink_water, :logger, [
    }}
 ]
 
-# Disable Sentry in dev (no DSN needed)
+# Disable Sentry in dev (enable temporarily with SENTRY_DSN env var for testing)
 config :sentry, dsn: nil
 
 # Disable OpenTelemetry trace export in dev (no collector running)
