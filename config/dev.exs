@@ -88,5 +88,14 @@ config :phoenix_live_view,
   # Enable helpful, but potentially expensive runtime checks
   enable_expensive_runtime_checks: true
 
+# JSON file handler for structured logging (logs/dev.log)
+config :drink_water, :logger, [
+  {:handler, :file_json, :logger_std_h,
+   %{
+     config: %{file: ~c"logs/dev.log", max_no_bytes: 10_485_760, max_no_files: 3},
+     formatter: LoggerJSON.Formatters.Basic.new(metadata: [:request_id, :user_id])
+   }}
+]
+
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false

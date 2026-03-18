@@ -5,8 +5,12 @@ defmodule DrinkWater.Application do
 
   use Application
 
+  require Logger
+
   @impl true
   def start(_type, _args) do
+    Logger.add_handlers(:drink_water)
+
     children = [
       DrinkWaterWeb.Telemetry,
       DrinkWater.Repo,
