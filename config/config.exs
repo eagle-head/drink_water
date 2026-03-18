@@ -70,6 +70,12 @@ config :drink_water, DrinkWater.PromEx,
   grafana: :disabled,
   metrics_server: :disabled
 
+# Sentry error tracking (DSN set via SENTRY_DSN env var in runtime.exs)
+config :sentry,
+  environment_name: Mix.env(),
+  enable_source_code_context: true,
+  root_source_code_paths: [File.cwd!()]
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"

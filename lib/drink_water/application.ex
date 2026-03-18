@@ -10,6 +10,11 @@ defmodule DrinkWater.Application do
   @impl true
   def start(_type, _args) do
     Logger.add_handlers(:drink_water)
+
+    :logger.add_handler(:sentry_handler, Sentry.LoggerHandler, %{
+      config: %{metadata: [:file, :line]}
+    })
+
     DrinkWater.OtelSetup.setup()
 
     children = [

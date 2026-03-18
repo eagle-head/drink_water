@@ -125,4 +125,17 @@ if config_env() == :prod do
   #     config :swoosh, :api_client, Swoosh.ApiClient.Req
   #
   # See https://hexdocs.pm/swoosh/Swoosh.html#module-installation for details.
+
+  # Sentry error tracking
+  if dsn = System.get_env("SENTRY_DSN") do
+    config :sentry, dsn: dsn
+  end
+
+  # OpenTelemetry tracing
+  config :opentelemetry, :resource, service: [name: "drink_water"]
+
+  config :opentelemetry,
+    span_processor: :batch,
+    traces_exporter:
+      {:otlp, endpoint: System.get_env("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4318")}
 end

@@ -88,7 +88,9 @@ defmodule DrinkWater.MixProject do
       {:opentelemetry_exporter, "~> 1.10"},
       {:opentelemetry_phoenix, "~> 2.0"},
       {:opentelemetry_ecto, "~> 1.2"},
-      {:opentelemetry_bandit, "~> 0.3.0"}
+      {:opentelemetry_bandit, "~> 0.3.0"},
+      {:sentry, "~> 10.2.0"},
+      {:hackney, "~> 1.8"}
     ]
   end
 
