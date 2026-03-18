@@ -33,6 +33,14 @@ config :logger, level: :info
 config :logger, :default_handler,
   formatter: {LoggerJSON.Formatters.Basic, metadata: [:request_id, :user_id]}
 
+# Sentry error tracking (DSN overridden by SENTRY_DSN env var in runtime.exs)
+config :sentry,
+  dsn:
+    "https://062c4109173de7dfcb71aa7d0fd36690@o4511067883044864.ingest.us.sentry.io/4511067890319360",
+  environment_name: :prod,
+  enable_source_code_context: true,
+  root_source_code_paths: [File.cwd!()]
+
 # Disable PromEx metrics_server in prod (expose via authenticated Plug instead)
 config :drink_water, DrinkWater.PromEx, metrics_server: :disabled
 
