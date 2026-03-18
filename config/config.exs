@@ -7,6 +7,8 @@
 # General application configuration
 import Config
 
+config :elixir, :time_zone_database, Tzdata.TimeZoneDatabase
+
 config :drink_water,
   ecto_repos: [DrinkWater.Repo],
   generators: [timestamp_type: :utc_datetime]

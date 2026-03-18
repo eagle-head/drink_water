@@ -21,7 +21,18 @@ defmodule DrinkWaterWeb.DashboardLive do
       Process.send_after(self(), :tick_next_alarm, 60_000)
     end
 
-    {:ok, assign(socket, page_title: gettext("Hydration Dashboard"), user_id: user_id)}
+    timezone =
+      case get_connect_params(socket) do
+        %{"timezone" => tz} when is_binary(tz) and tz != "" -> tz
+        _ -> "Etc/UTC"
+      end
+
+    {:ok,
+     assign(socket,
+       page_title: gettext("Hydration Dashboard"),
+       user_id: user_id,
+       timezone: timezone
+     )}
   end
 
   @impl true
@@ -54,7 +65,8 @@ defmodule DrinkWaterWeb.DashboardLive do
     send_update(DrinkWaterWeb.HistoryComponent,
       id: "history",
       user_id: socket.assigns.user.id,
-      selected_date: date
+      selected_date: date,
+      timezone: socket.assigns.timezone
     )
 
     send_update(DrinkWaterWeb.WeeklySummaryComponent,
@@ -91,7 +103,8 @@ defmodule DrinkWaterWeb.DashboardLive do
       send_update(DrinkWaterWeb.HistoryComponent,
         id: "history",
         user_id: socket.assigns.user.id,
-        selected_date: socket.assigns.selected_date
+        selected_date: socket.assigns.selected_date,
+        timezone: socket.assigns.timezone
       )
     end
 

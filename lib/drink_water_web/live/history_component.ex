@@ -8,10 +8,13 @@ defmodule DrinkWaterWeb.HistoryComponent do
     selected_date =
       assigns[:selected_date] || socket.assigns[:selected_date] || Date.utc_today()
 
+    timezone = assigns[:timezone] || socket.assigns[:timezone] || "Etc/UTC"
+
     socket =
       socket
       |> assign(:user_id, assigns.user_id)
       |> assign(:selected_date, selected_date)
+      |> assign(:timezone, timezone)
       |> load_intakes()
 
     {:ok, socket}
@@ -79,6 +82,13 @@ defmodule DrinkWaterWeb.HistoryComponent do
     end
   end
 
+  defp format_local_time(utc_datetime, timezone) do
+    case DateTime.shift_zone(utc_datetime, timezone) do
+      {:ok, local_dt} -> Calendar.strftime(local_dt, "%H:%M")
+      {:error, _} -> Calendar.strftime(utc_datetime, "%H:%M")
+    end
+  end
+
   defp is_today?(date), do: date == Date.utc_today()
 
   @impl true
@@ -142,7 +152,7 @@ defmodule DrinkWaterWeb.HistoryComponent do
       <% else %>
         <ul class="list bg-base-200 rounded-box">
           <li :for={intake <- @intakes} class="list-row" data-intake-id={intake.id}>
-            <div class="font-mono">{Calendar.strftime(intake.date_time_utc, "%H:%M")}</div>
+            <div class="font-mono">{format_local_time(intake.date_time_utc, @timezone)}</div>
             <div class="list-col-grow font-bold">{intake.volume}ml</div>
             <div class="join">
               <button
