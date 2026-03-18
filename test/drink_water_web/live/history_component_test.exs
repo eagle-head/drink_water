@@ -62,6 +62,24 @@ defmodule DrinkWaterWeb.HistoryComponentTest do
     end
   end
 
+  describe "edit with invalid id" do
+    test "edit with non-numeric id is silently ignored", %{conn: conn, user: user} do
+      water_intake_fixture(user.id, %{date_time_utc: DateTime.utc_now(), volume: 300})
+
+      {:ok, view, _html} = live(conn, "/dashboard")
+
+      # Send edit event with non-numeric id directly to the component
+      view
+      |> element("[data-intake-id] button[phx-click=\"edit\"]")
+      |> render_click(%{"id" => "not-a-number"})
+
+      # Component ignores the invalid id — no edit modal opened
+      html = render(view)
+      assert html =~ "300"
+      refute html =~ "Edit Intake"
+    end
+  end
+
   describe "delete with invalid id" do
     test "ignores non-numeric id values", %{conn: conn, user: user} do
       water_intake_fixture(user.id, %{date_time_utc: DateTime.utc_now(), volume: 300})

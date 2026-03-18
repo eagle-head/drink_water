@@ -261,6 +261,20 @@ defmodule DrinkWaterWeb.CoreComponentsTest do
     end
   end
 
+  describe "translate_error/1" do
+    test "translates error with count (dngettext plural branch)" do
+      error = {"%{count} items", [count: 5]}
+      result = CoreComponents.translate_error(error)
+      assert result == "5 items"
+    end
+
+    test "translates error with count of 1 (singular)" do
+      error = {"%{count} item", [count: 1]}
+      result = CoreComponents.translate_error(error)
+      assert result == "1 item"
+    end
+  end
+
   describe "show/1 and hide/1" do
     test "show returns a JS command" do
       js = CoreComponents.show("#my-element")

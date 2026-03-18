@@ -339,6 +339,20 @@ defmodule DrinkWaterWeb.DashboardLiveTest do
       assert html =~ "400"
     end
 
+    test "clicking a weekly bar with invalid date is silently ignored", %{conn: conn} do
+      {:ok, view, _html} = live(conn, "/dashboard")
+      yesterday = Date.add(Date.utc_today(), -1)
+
+      # Click a valid bar first to confirm the pattern works
+      view
+      |> element("[phx-click=\"select-day\"][phx-value-date=\"#{yesterday}\"]")
+      |> render_click(%{"date" => "not-a-date"})
+
+      # Should still be on today (the invalid date was ignored)
+      html = render(view)
+      assert html =~ "Today"
+    end
+
     test "selected bar has active styling", %{conn: conn} do
       {:ok, view, _html} = live(conn, "/dashboard")
       yesterday = Date.add(Date.utc_today(), -1)
