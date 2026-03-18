@@ -1,80 +1,86 @@
-<div class="container mx-auto px-4 py-6">
+<div class="container mx-auto px-4 py-6 max-w-5xl">
   <.flash kind={:info} flash={@flash} />
   <.flash kind={:error} flash={@flash} />
 
-  <h1 class="card-title text-2xl mb-6">
-    {gettext("Hydration Dashboard")} — {@user.first_name} {@user.last_name}
-  </h1>
-
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-    <div class="card bg-base-200 shadow-sm">
-      <div class="card-body">
-        <.live_component
-          module={DrinkWaterWeb.ProgressComponent}
-          id="progress"
-          user_id={@user.id}
-          goal={@goal}
-          selected_date={@selected_date}
-        />
-      </div>
-    </div>
-
-    <div class="card bg-base-200 shadow-sm">
-      <div class="card-body">
-        <.live_component
-          module={DrinkWaterWeb.IntakeFormComponent}
-          id="intake-form-component"
-          user_id={@user.id}
-        />
-      </div>
-    </div>
-
-    <div class="card bg-base-200 shadow-sm">
-      <div class="card-body">
-        <.live_component
-          module={DrinkWaterWeb.NextAlarmComponent}
-          id="next-alarm"
-          user_id={@user.id}
-        />
-      </div>
-    </div>
-
-    <div class="card bg-base-200 shadow-sm">
-      <div class="card-body">
-        <.live_component
-          module={DrinkWaterWeb.AlarmSettingsComponent}
-          id="alarm-settings"
-          user_id={@user.id}
-        />
-      </div>
-    </div>
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="card-title text-2xl">
+      {gettext("Hydration Dashboard")} — {@user.first_name} {@user.last_name}
+    </h1>
+    <Layouts.theme_toggle />
   </div>
 
-  <div class="divider"></div>
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    <%!-- Main column (2/3) --%>
+    <div class="lg:col-span-2 space-y-4">
+      <div class="card bg-base-200 shadow-sm">
+        <div class="card-body">
+          <div class="flex flex-col sm:flex-row gap-6 items-center">
+            <div class="flex-shrink-0">
+              <.live_component
+                module={DrinkWaterWeb.ProgressComponent}
+                id="progress"
+                user_id={@user.id}
+                goal={@goal}
+                selected_date={@selected_date}
+              />
+            </div>
+            <div class="flex-1 w-full">
+              <.live_component
+                module={DrinkWaterWeb.IntakeFormComponent}
+                id="intake-form-component"
+                user_id={@user.id}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
 
-  <div class="card bg-base-200 shadow-sm">
-    <div class="card-body">
-      <.live_component
-        module={DrinkWaterWeb.HistoryComponent}
-        id="history"
-        user_id={@user.id}
-        selected_date={@selected_date}
-        timezone={@timezone}
-      />
+      <div class="card bg-base-200 shadow-sm">
+        <div class="card-body">
+          <.live_component
+            module={DrinkWaterWeb.HistoryComponent}
+            id="history"
+            user_id={@user.id}
+            selected_date={@selected_date}
+            timezone={@timezone}
+          />
+        </div>
+      </div>
+
+      <div class="card bg-base-200 shadow-sm">
+        <div class="card-body">
+          <.live_component
+            module={DrinkWaterWeb.WeeklySummaryComponent}
+            id="weekly-summary"
+            user_id={@user.id}
+            goal={@goal}
+            selected_date={@selected_date}
+          />
+        </div>
+      </div>
     </div>
-  </div>
 
-  <div class="divider"></div>
+    <%!-- Sidebar (1/3) --%>
+    <div class="space-y-4">
+      <div class="card bg-base-200 shadow-sm">
+        <div class="card-body">
+          <.live_component
+            module={DrinkWaterWeb.NextAlarmComponent}
+            id="next-alarm"
+            user_id={@user.id}
+          />
+        </div>
+      </div>
 
-  <div class="card bg-base-200 shadow-sm">
-    <div class="card-body">
-      <.live_component
-        module={DrinkWaterWeb.WeeklySummaryComponent}
-        id="weekly-summary"
-        user_id={@user.id}
-        goal={@goal}
-        selected_date={@selected_date}
-      />
+      <div class="card bg-base-200 shadow-sm">
+        <div class="card-body">
+          <.live_component
+            module={DrinkWaterWeb.AlarmSettingsComponent}
+            id="alarm-settings"
+            user_id={@user.id}
+          />
+        </div>
+      </div>
     </div>
   </div>
 
