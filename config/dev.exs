@@ -93,7 +93,7 @@ config :drink_water, :logger, [
   {:handler, :file_json, :logger_std_h,
    %{
      config: %{file: ~c"logs/dev.log", max_no_bytes: 10_485_760, max_no_files: 3},
-     formatter: LoggerJSON.Formatters.Basic.new(metadata: [:request_id, :user_id])
+     formatter: {LoggerJSON.Formatters.Basic, metadata: [:request_id, :user_id]}
    }}
 ]
 
