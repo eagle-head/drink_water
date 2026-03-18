@@ -162,14 +162,9 @@ defmodule DrinkWater.HydrationTracking do
   Deletes a water intake.
   """
   def delete_water_intake(%WaterIntake{} = water_intake) do
-    case Repo.delete(water_intake) do
-      {:ok, deleted} ->
-        broadcast_event(deleted.user_id, :intake_deleted)
-        {:ok, deleted}
-
-      error ->
-        error
-    end
+    {:ok, deleted} = Repo.delete(water_intake)
+    broadcast_event(deleted.user_id, :intake_deleted)
+    {:ok, deleted}
   end
 
   @doc """

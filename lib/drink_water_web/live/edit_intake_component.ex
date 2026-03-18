@@ -112,5 +112,5 @@ defmodule DrinkWaterWeb.EditIntakeComponent do
   end
 
   defp format_datetime(value) when is_binary(value), do: value
-  defp format_datetime(_), do: ""
+  defp format_datetime(nil), do: ""
 end
