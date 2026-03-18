@@ -100,6 +100,7 @@ defmodule DrinkWaterWeb.HistoryComponent do
           <button
             phx-click="nav-prev"
             phx-target={@myself}
+            phx-throttle="500"
             class="join-item btn btn-ghost btn-xs"
             title={gettext("Previous day")}
           >
@@ -110,6 +111,7 @@ defmodule DrinkWaterWeb.HistoryComponent do
             <button
               phx-click="nav-today"
               phx-target={@myself}
+              phx-throttle="500"
               class="join-item btn btn-ghost btn-xs"
             >
               {gettext("Today")}
@@ -119,6 +121,7 @@ defmodule DrinkWaterWeb.HistoryComponent do
           <button
             phx-click="nav-next"
             phx-target={@myself}
+            phx-throttle="500"
             class={"join-item btn btn-ghost btn-xs #{if @is_today, do: "btn-disabled"}"}
             disabled={@is_today}
             title={gettext("Next day")}
@@ -154,6 +157,7 @@ defmodule DrinkWaterWeb.HistoryComponent do
                 phx-click="delete"
                 phx-value-id={intake.id}
                 phx-target={@myself}
+                phx-throttle="1000"
                 class="join-item btn btn-ghost btn-xs text-error"
               >
                 <.icon name="hero-x-mark" class="size-4" />

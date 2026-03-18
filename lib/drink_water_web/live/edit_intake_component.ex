@@ -86,7 +86,11 @@ defmodule DrinkWaterWeb.EditIntakeComponent do
         </fieldset>
 
         <div class="join">
-          <button type="submit" class="join-item btn btn-primary btn-sm">
+          <button
+            type="submit"
+            class="join-item btn btn-primary btn-sm"
+            phx-disable-with={gettext("Saving...")}
+          >
             {gettext("Save")}
           </button>
           <button

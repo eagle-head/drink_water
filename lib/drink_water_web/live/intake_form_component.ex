@@ -82,6 +82,7 @@ defmodule DrinkWaterWeb.IntakeFormComponent do
           phx-click="quick-log"
           phx-value-volume={volume}
           phx-target={@myself}
+          phx-throttle="1000"
           class="btn btn-primary btn-sm"
         >
           {volume}ml
@@ -104,7 +105,9 @@ defmodule DrinkWaterWeb.IntakeFormComponent do
             />
             <.error :for={error <- @form[:volume].errors}>{translate_error(error)}</.error>
           </fieldset>
-          <button type="submit" class="btn btn-primary">{gettext("Log")}</button>
+          <button type="submit" class="btn btn-primary" phx-disable-with={gettext("Logging...")}>
+            {gettext("Log")}
+          </button>
         </div>
       </.form>
     </div>
