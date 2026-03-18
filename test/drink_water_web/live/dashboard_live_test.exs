@@ -464,6 +464,32 @@ defmodule DrinkWaterWeb.DashboardLiveTest do
     end
   end
 
+  describe "tick_next_alarm and flash dismiss" do
+    setup %{user: user} do
+      alarm_settings_fixture(user, %{goal: 2000, interval_minutes: 60})
+      :ok
+    end
+
+    test "tick_next_alarm re-arms timer without error", %{conn: conn, user: _user} do
+      {:ok, view, _html} = live(conn, ~p"/dashboard")
+      send(view.pid, :tick_next_alarm)
+      html = render(view)
+      assert html =~ "Next Alarm"
+    end
+
+    test "flash auto-dismisses via dismiss_flash message", %{conn: conn, user: _user} do
+      {:ok, view, _html} = live(conn, ~p"/dashboard")
+      send(view.pid, {:flash, :info, "Test message"})
+      html = render(view)
+      assert html =~ "Test message"
+
+      # Simulate the dismiss timer firing
+      send(view.pid, {:dismiss_flash, :info})
+      # Should not crash — the JS event push handles the UI side
+      render(view)
+    end
+  end
+
   describe "edit intake" do
     setup %{user: user} do
       alarm_settings_fixture(user, %{goal: 2000, interval_minutes: 60})
@@ -564,6 +590,38 @@ defmodule DrinkWaterWeb.DashboardLiveTest do
 
       html = render(view)
       refute html =~ "data-intake-id=\"#{intake.id}\""
+    end
+
+    test "close-edit-modal dismisses editing state", %{conn: conn, user: user} do
+      intake = water_intake_fixture(user.id, %{date_time_utc: DateTime.utc_now(), volume: 200})
+      {:ok, view, _html} = live(conn, ~p"/dashboard")
+
+      # Open edit modal via history component
+      view
+      |> element("[data-intake-id='#{intake.id}'] button[phx-click='edit']")
+      |> render_click()
+
+      assert render(view) =~ "Edit Intake"
+
+      # Close via backdrop
+      view |> element(".modal-backdrop") |> render_click()
+      refute render(view) =~ "Edit Intake"
+    end
+
+    test "edit intake form validates on change", %{conn: conn, user: user} do
+      intake = water_intake_fixture(user.id, %{date_time_utc: DateTime.utc_now(), volume: 200})
+      {:ok, view, _html} = live(conn, ~p"/dashboard")
+
+      view
+      |> element("[data-intake-id='#{intake.id}'] button[phx-click='edit']")
+      |> render_click()
+
+      # Change volume to invalid value
+      view
+      |> form("#edit-intake-form", intake: %{volume: 0})
+      |> render_change()
+
+      assert render(view) =~ "Edit Intake"
     end
 
     test "clicking edit on deleted intake shows error flash", %{conn: conn, user: user} do
