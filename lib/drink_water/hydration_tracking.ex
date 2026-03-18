@@ -9,6 +9,7 @@ defmodule DrinkWater.HydrationTracking do
 
   alias DrinkWater.HydrationTracking.WaterIntake
   alias DrinkWater.HydrationTracking.WaterIntakeFilter
+  alias DrinkWater.TelemetryEvents
 
   @sort_field_atoms %{
     "date_time_utc" => :date_time_utc,
@@ -28,22 +29,27 @@ defmodule DrinkWater.HydrationTracking do
   `{:error, %Ecto.Changeset{}}` if filter params are invalid.
   """
   def list_water_intakes(user_id, params \\ %{}) do
-    with {:ok, filter} <- WaterIntakeFilter.changeset(params) |> apply_action(:validate),
-         {:ok, query} <-
-           WaterIntake
-           |> where(user_id: ^user_id)
-           |> apply_date_filter(filter)
-           |> apply_volume_filter(filter)
-           |> apply_cursor(filter) do
-      entries =
-        query
-        |> apply_sort(filter)
-        |> limit(^(filter.size + 1))
-        |> Repo.all()
+    TelemetryEvents.span_intake_search(%{user_id: user_id}, fn ->
+      result =
+        with {:ok, filter} <- WaterIntakeFilter.changeset(params) |> apply_action(:validate),
+             {:ok, query} <-
+               WaterIntake
+               |> where(user_id: ^user_id)
+               |> apply_date_filter(filter)
+               |> apply_volume_filter(filter)
+               |> apply_cursor(filter) do
+          entries =
+            query
+            |> apply_sort(filter)
+            |> limit(^(filter.size + 1))
+            |> Repo.all()
 
-      {page, next_cursor} = build_page(entries, filter)
-      {:ok, %{entries: page, next_cursor: next_cursor}}
-    end
+          {page, next_cursor} = build_page(entries, filter)
+          {:ok, %{entries: page, next_cursor: next_cursor}}
+        end
+
+      {result, %{user_id: user_id}}
+    end)
   end
 
   @doc """
@@ -125,46 +131,55 @@ defmodule DrinkWater.HydrationTracking do
   The `user_id` is set programmatically, not through user input.
   """
   def create_water_intake(user_id, attrs) do
-    result =
-      %WaterIntake{user_id: user_id}
-      |> WaterIntake.changeset(attrs)
-      |> Repo.insert()
-      |> maybe_conflict(:water_intake)
+    TelemetryEvents.span_intake_created(%{user_id: user_id}, fn ->
+      result =
+        %WaterIntake{user_id: user_id}
+        |> WaterIntake.changeset(attrs)
+        |> Repo.insert()
+        |> maybe_conflict(:water_intake)
 
-    case result do
-      {:ok, intake} ->
-        broadcast_event(intake.user_id, :intake_created)
-        {:ok, intake}
+      case result do
+        {:ok, intake} ->
+          broadcast_event(intake.user_id, :intake_created)
+          {{:ok, intake}, %{volume: intake.volume}, %{user_id: user_id}}
 
-      error ->
-        error
-    end
+        error ->
+          {error, %{user_id: user_id}}
+      end
+    end)
   end
 
   @doc """
   Updates a water intake.
   """
   def update_water_intake(%WaterIntake{} = water_intake, attrs) do
-    case water_intake
-         |> WaterIntake.changeset(attrs)
-         |> Repo.update()
-         |> maybe_conflict(:water_intake) do
-      {:ok, updated} ->
-        broadcast_event(updated.user_id, :intake_updated)
-        {:ok, updated}
+    TelemetryEvents.span_intake_updated(%{user_id: water_intake.user_id}, fn ->
+      result =
+        case water_intake
+             |> WaterIntake.changeset(attrs)
+             |> Repo.update()
+             |> maybe_conflict(:water_intake) do
+          {:ok, updated} ->
+            broadcast_event(updated.user_id, :intake_updated)
+            {:ok, updated}
 
-      error ->
-        error
-    end
+          error ->
+            error
+        end
+
+      {result, %{user_id: water_intake.user_id}}
+    end)
   end
 
   @doc """
   Deletes a water intake.
   """
   def delete_water_intake(%WaterIntake{} = water_intake) do
-    {:ok, deleted} = Repo.delete(water_intake)
-    broadcast_event(deleted.user_id, :intake_deleted)
-    {:ok, deleted}
+    TelemetryEvents.span_intake_deleted(%{user_id: water_intake.user_id}, fn ->
+      {:ok, deleted} = Repo.delete(water_intake)
+      broadcast_event(deleted.user_id, :intake_deleted)
+      {{:ok, deleted}, %{user_id: water_intake.user_id}}
+    end)
   end
 
   @doc """
@@ -173,11 +188,16 @@ defmodule DrinkWater.HydrationTracking do
   to avoid double broadcasts.
   """
   def delete_water_intake_by_id(user_id, intake_id) do
-    with {:ok, intake} <- get_water_intake(user_id, intake_id),
-         {:ok, deleted} <- Repo.delete(intake) do
-      broadcast_event(user_id, :intake_deleted)
-      {:ok, deleted}
-    end
+    TelemetryEvents.span_intake_deleted(%{user_id: user_id}, fn ->
+      result =
+        with {:ok, intake} <- get_water_intake(user_id, intake_id),
+             {:ok, deleted} <- Repo.delete(intake) do
+          broadcast_event(user_id, :intake_deleted)
+          {:ok, deleted}
+        end
+
+      {result, %{user_id: user_id}}
+    end)
   end
 
   defp broadcast_event(user_id, event) do

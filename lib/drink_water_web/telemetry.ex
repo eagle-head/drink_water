@@ -93,7 +93,41 @@ defmodule DrinkWaterWeb.Telemetry do
       summary("vm.memory.total", unit: {:byte, :kilobyte}),
       summary("vm.total_run_queue_lengths.total"),
       summary("vm.total_run_queue_lengths.cpu"),
-      summary("vm.total_run_queue_lengths.io")
+      summary("vm.total_run_queue_lengths.io"),
+
+      # Domain Metrics — Hydration
+      summary("drink_water.hydration.intake_created.stop.duration",
+        unit: {:native, :millisecond}
+      ),
+      summary("drink_water.hydration.intake_updated.stop.duration",
+        unit: {:native, :millisecond}
+      ),
+      summary("drink_water.hydration.intake_deleted.stop.duration",
+        unit: {:native, :millisecond}
+      ),
+      summary("drink_water.hydration.intake_search.stop.duration",
+        unit: {:native, :millisecond}
+      ),
+
+      # Domain Metrics — Users
+      summary("drink_water.users.user_created.stop.duration",
+        unit: {:native, :millisecond}
+      ),
+      summary("drink_water.users.user_updated.stop.duration",
+        unit: {:native, :millisecond}
+      ),
+      summary("drink_water.users.user_deleted.stop.duration",
+        unit: {:native, :millisecond}
+      ),
+      summary("drink_water.users.alarm_settings_created.stop.duration",
+        unit: {:native, :millisecond}
+      ),
+      summary("drink_water.users.alarm_settings_updated.stop.duration",
+        unit: {:native, :millisecond}
+      ),
+      summary("drink_water.users.alarm_settings_deleted.stop.duration",
+        unit: {:native, :millisecond}
+      )
     ]
   end
 

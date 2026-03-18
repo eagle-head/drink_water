@@ -6,6 +6,7 @@ defmodule DrinkWater.UserManagement do
   import Ecto.Query, warn: false
   alias DrinkWater.Repo
 
+  alias DrinkWater.TelemetryEvents
   alias DrinkWater.UserManagement.User
 
   @doc """
@@ -51,10 +52,15 @@ defmodule DrinkWater.UserManagement do
 
   """
   def create_user(attrs) do
-    %User{}
-    |> User.changeset(attrs)
-    |> Repo.insert()
-    |> maybe_conflict(:user, :email)
+    TelemetryEvents.span_user_created(%{}, fn ->
+      result =
+        %User{}
+        |> User.changeset(attrs)
+        |> Repo.insert()
+        |> maybe_conflict(:user, :email)
+
+      {result, %{}}
+    end)
   end
 
   @doc """
@@ -70,9 +76,14 @@ defmodule DrinkWater.UserManagement do
 
   """
   def update_user(%User{} = user, attrs) do
-    user
-    |> User.changeset(attrs)
-    |> Repo.update()
+    TelemetryEvents.span_user_updated(%{user_id: user.id}, fn ->
+      result =
+        user
+        |> User.changeset(attrs)
+        |> Repo.update()
+
+      {result, %{user_id: user.id}}
+    end)
   end
 
   @doc """
@@ -102,9 +113,13 @@ defmodule DrinkWater.UserManagement do
   by the database via ON DELETE CASCADE constraints.
   """
   def delete_user_by_id(id) when is_integer(id) do
-    User
-    |> where(id: ^id)
-    |> Repo.delete_all()
+    TelemetryEvents.span_user_deleted(%{user_id: id}, fn ->
+      User
+      |> where(id: ^id)
+      |> Repo.delete_all()
+
+      {:ok, %{user_id: id}}
+    end)
 
     :ok
   end
@@ -151,39 +166,52 @@ defmodule DrinkWater.UserManagement do
   The `user_id` is set via association, not through user input.
   """
   def create_alarm_settings(%User{} = user, attrs) do
-    user
-    |> Ecto.build_assoc(:alarm_settings)
-    |> AlarmSettings.changeset(attrs)
-    |> Repo.insert()
-    |> maybe_conflict(:alarm_settings, :user_id)
+    TelemetryEvents.span_alarm_settings_created(%{user_id: user.id}, fn ->
+      result =
+        user
+        |> Ecto.build_assoc(:alarm_settings)
+        |> AlarmSettings.changeset(attrs)
+        |> Repo.insert()
+        |> maybe_conflict(:alarm_settings, :user_id)
+
+      {result, %{user_id: user.id}}
+    end)
   end
 
   @doc """
   Updates alarm settings.
   """
   def update_alarm_settings(%AlarmSettings{} = alarm_settings, attrs) do
-    case alarm_settings
-         |> AlarmSettings.changeset(attrs)
-         |> Repo.update() do
-      {:ok, updated} ->
-        Phoenix.PubSub.broadcast(
-          DrinkWater.PubSub,
-          "user:#{updated.user_id}",
-          :alarm_settings_updated
-        )
+    TelemetryEvents.span_alarm_settings_updated(%{user_id: alarm_settings.user_id}, fn ->
+      result =
+        case alarm_settings
+             |> AlarmSettings.changeset(attrs)
+             |> Repo.update() do
+          {:ok, updated} ->
+            Phoenix.PubSub.broadcast(
+              DrinkWater.PubSub,
+              "user:#{updated.user_id}",
+              :alarm_settings_updated
+            )
 
-        {:ok, updated}
+            {:ok, updated}
 
-      error ->
-        error
-    end
+          error ->
+            error
+        end
+
+      {result, %{user_id: alarm_settings.user_id}}
+    end)
   end
 
   @doc """
   Deletes alarm settings.
   """
   def delete_alarm_settings(%AlarmSettings{} = alarm_settings) do
-    Repo.delete(alarm_settings)
+    TelemetryEvents.span_alarm_settings_deleted(%{user_id: alarm_settings.user_id}, fn ->
+      result = Repo.delete(alarm_settings)
+      {result, %{user_id: alarm_settings.user_id}}
+    end)
   end
 
   defp maybe_conflict({:error, %Ecto.Changeset{} = changeset}, resource, field) do
