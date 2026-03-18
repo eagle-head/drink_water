@@ -68,6 +68,14 @@ if config_env() == :prod do
     ],
     secret_key_base: secret_key_base
 
+  # OpenTelemetry tracing
+  config :opentelemetry, :resource, service: [name: "drink_water"]
+
+  config :opentelemetry,
+    span_processor: :batch,
+    traces_exporter:
+      {:otlp, endpoint: System.get_env("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4318")}
+
   # ## SSL Support
   #
   # To get SSL working, you will need to add the `https` key

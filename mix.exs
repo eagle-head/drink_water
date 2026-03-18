@@ -82,7 +82,13 @@ defmodule DrinkWater.MixProject do
       {:bandit, "~> 1.5"},
       {:tzdata, "~> 1.1"},
       {:logger_json, "~> 7.0"},
-      {:prom_ex, "~> 1.11"}
+      {:prom_ex, "~> 1.11"},
+      {:opentelemetry, "~> 1.7"},
+      {:opentelemetry_api, "~> 1.5"},
+      {:opentelemetry_exporter, "~> 1.10"},
+      {:opentelemetry_phoenix, "~> 2.0"},
+      {:opentelemetry_ecto, "~> 1.2"},
+      {:opentelemetry_bandit, "~> 0.3.0"}
     ]
   end
 

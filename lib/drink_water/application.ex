@@ -10,6 +10,7 @@ defmodule DrinkWater.Application do
   @impl true
   def start(_type, _args) do
     Logger.add_handlers(:drink_water)
+    DrinkWater.OtelSetup.setup()
 
     children = [
       DrinkWaterWeb.Telemetry,

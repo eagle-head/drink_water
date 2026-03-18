@@ -32,6 +32,9 @@ config :drink_water, rate_limiting_enabled: false
 # Disable PromEx metrics server in test
 config :drink_water, DrinkWater.PromEx, disabled: true
 
+# Disable OpenTelemetry trace export in test
+config :opentelemetry, traces_exporter: :none
+
 # Print only warnings and errors during test
 config :logger, level: :warning
 
