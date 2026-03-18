@@ -42,6 +42,12 @@ defmodule DrinkWaterWeb.Router do
   scope "/api", DrinkWaterWeb do
     pipe_through :api
 
+    get "/health", HealthController, :index
+  end
+
+  scope "/api", DrinkWaterWeb do
+    pipe_through :api
+
     scope "/users" do
       pipe_through :rate_limit_user_api
 
