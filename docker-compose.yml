@@ -8,11 +8,18 @@
 # a .env file.  Copy .env.example to .env to customise values.
 # =============================================================================
 
+networks:
+  drink_water_net:
+    name: drink_water_net
+    driver: bridge
+
 services:
   db:
     container_name: drink_water_db
     image: postgres:${POSTGRES_VERSION:-17-alpine}
     restart: unless-stopped
+    networks:
+      - drink_water_net
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
@@ -48,6 +55,8 @@ services:
     container_name: drink_water_prometheus
     image: prom/prometheus:v2.53.0
     restart: unless-stopped
+    networks:
+      - drink_water_net
     ports:
       - "9090:9090"
     volumes:
@@ -71,6 +80,8 @@ services:
     image: grafana/loki:3.0.0
     restart: unless-stopped
     user: "0"
+    networks:
+      - drink_water_net
     ports:
       - "3100:3100"
     volumes:
@@ -92,6 +103,8 @@ services:
     container_name: drink_water_promtail
     image: grafana/promtail:3.0.0
     restart: unless-stopped
+    networks:
+      - drink_water_net
     volumes:
       - ./infra/promtail/config.yml:/etc/promtail/config.yml:ro
       - ./logs:/var/log/drink_water:ro
@@ -113,6 +126,8 @@ services:
     container_name: drink_water_grafana
     image: grafana/grafana:11.0.0
     restart: unless-stopped
+    networks:
+      - drink_water_net
     ports:
       - "3000:3000"
     environment:
