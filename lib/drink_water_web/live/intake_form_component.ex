@@ -3,6 +3,7 @@ defmodule DrinkWaterWeb.IntakeFormComponent do
 
   alias DrinkWater.HydrationTracking
   alias DrinkWater.HydrationTracking.WaterIntake
+  alias DrinkWaterWeb.LiveRateLimit
 
   @quick_volumes [150, 250, 500]
 
@@ -29,6 +30,21 @@ defmodule DrinkWaterWeb.IntakeFormComponent do
 
   @impl true
   def handle_event("save", %{"intake" => params}, socket) do
+    case LiveRateLimit.check(socket, "write", 30) do
+      {:allow, _} -> do_save(socket, params)
+      {:deny, socket} -> {:noreply, socket}
+    end
+  end
+
+  @impl true
+  def handle_event("quick-log", %{"volume" => volume_str}, socket) do
+    case LiveRateLimit.check(socket, "write", 30) do
+      {:allow, _} -> do_quick_log(socket, volume_str)
+      {:deny, socket} -> {:noreply, socket}
+    end
+  end
+
+  defp do_save(socket, params) do
     attrs =
       params
       |> Map.put("date_time_utc", DateTime.utc_now())
@@ -45,8 +61,7 @@ defmodule DrinkWaterWeb.IntakeFormComponent do
     end
   end
 
-  @impl true
-  def handle_event("quick-log", %{"volume" => volume_str}, socket) do
+  defp do_quick_log(socket, volume_str) do
     case Integer.parse(volume_str) do
       {volume, ""} ->
         attrs = %{

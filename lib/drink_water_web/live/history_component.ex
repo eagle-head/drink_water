@@ -2,6 +2,7 @@ defmodule DrinkWaterWeb.HistoryComponent do
   use DrinkWaterWeb, :live_component
 
   alias DrinkWater.HydrationTracking
+  alias DrinkWaterWeb.LiveRateLimit
 
   @impl true
   def update(assigns, socket) do
@@ -66,6 +67,13 @@ defmodule DrinkWaterWeb.HistoryComponent do
 
   @impl true
   def handle_event("delete", %{"id" => id_str}, socket) do
+    case LiveRateLimit.check(socket, "write", 30) do
+      {:allow, _} -> do_delete(socket, id_str)
+      {:deny, socket} -> {:noreply, socket}
+    end
+  end
+
+  defp do_delete(socket, id_str) do
     case Integer.parse(id_str) do
       {id, ""} ->
         case HydrationTracking.delete_water_intake_by_id(socket.assigns.user_id, id) do

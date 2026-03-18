@@ -3,6 +3,7 @@ defmodule DrinkWaterWeb.AlarmSettingsComponent do
 
   alias DrinkWater.UserManagement
   alias DrinkWater.UserManagement.AlarmSettings
+  alias DrinkWaterWeb.LiveRateLimit
 
   @impl true
   def update(assigns, socket) do
@@ -58,6 +59,13 @@ defmodule DrinkWaterWeb.AlarmSettingsComponent do
 
   @impl true
   def handle_event("save", %{"alarm_settings" => params}, socket) do
+    case LiveRateLimit.check(socket, "write", 30) do
+      {:allow, _} -> do_save(socket, params)
+      {:deny, socket} -> {:noreply, socket}
+    end
+  end
+
+  defp do_save(socket, params) do
     case UserManagement.update_alarm_settings(socket.assigns.alarm_settings, params) do
       {:ok, updated} ->
         {:noreply,
