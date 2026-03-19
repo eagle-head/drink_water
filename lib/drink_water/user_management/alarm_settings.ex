@@ -57,11 +57,16 @@ defmodule DrinkWater.UserManagement.AlarmSettings do
   defp validate_start_before_end(changeset) do
     start_time = get_field(changeset, :daily_start_time)
     end_time = get_field(changeset, :daily_end_time)
+    do_validate_start_before_end(changeset, start_time, end_time)
+  end
 
-    if start_time && end_time && Time.compare(start_time, end_time) != :lt do
-      add_error(changeset, :daily_end_time, "must be after start time")
-    else
-      changeset
+  defp do_validate_start_before_end(changeset, start_time, end_time)
+       when not is_nil(start_time) and not is_nil(end_time) do
+    case Time.compare(start_time, end_time) do
+      :lt -> changeset
+      _not_lt -> add_error(changeset, :daily_end_time, "must be after start time")
     end
   end
+
+  defp do_validate_start_before_end(changeset, _start_time, _end_time), do: changeset
 end
