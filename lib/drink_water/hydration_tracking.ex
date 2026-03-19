@@ -262,24 +262,7 @@ defmodule DrinkWater.HydrationTracking do
 
     case decode_cursor(cursor) do
       {:ok, cursor_value, cursor_id, cursor_field} when cursor_field == field ->
-        filtered =
-          if dir == "desc" do
-            where(
-              query,
-              [w],
-              field(w, ^sort_field) < ^cursor_value or
-                (field(w, ^sort_field) == ^cursor_value and w.id < ^cursor_id)
-            )
-          else
-            where(
-              query,
-              [w],
-              field(w, ^sort_field) > ^cursor_value or
-                (field(w, ^sort_field) == ^cursor_value and w.id > ^cursor_id)
-            )
-          end
-
-        {:ok, filtered}
+        {:ok, apply_direction(query, sort_field, cursor_value, cursor_id, dir)}
 
       {:ok, _cursor_value, _cursor_id, _wrong_field} ->
         {:error, :bad_request}
@@ -289,14 +272,33 @@ defmodule DrinkWater.HydrationTracking do
     end
   end
 
-  defp build_page(entries, %{size: size, sort_field: field} = _filter) do
-    if length(entries) > size do
-      page = Enum.take(entries, size)
-      last = List.last(page)
-      sort_value = Map.get(last, Map.fetch!(@sort_field_atoms, field))
-      {page, encode_cursor(sort_value, last.id, field)}
-    else
-      {entries, nil}
+  defp apply_direction(query, sort_field, cursor_value, cursor_id, "desc") do
+    where(
+      query,
+      [w],
+      field(w, ^sort_field) < ^cursor_value or
+        (field(w, ^sort_field) == ^cursor_value and w.id < ^cursor_id)
+    )
+  end
+
+  defp apply_direction(query, sort_field, cursor_value, cursor_id, "asc") do
+    where(
+      query,
+      [w],
+      field(w, ^sort_field) > ^cursor_value or
+        (field(w, ^sort_field) == ^cursor_value and w.id > ^cursor_id)
+    )
+  end
+
+  defp build_page(entries, %{size: size, sort_field: field}) do
+    case Enum.split(entries, size) do
+      {page, [_ | _]} ->
+        last = List.last(page)
+        sort_value = Map.get(last, Map.fetch!(@sort_field_atoms, field))
+        {page, encode_cursor(sort_value, last.id, field)}
+
+      {page, []} ->
+        {page, nil}
     end
   end
 
@@ -315,12 +317,9 @@ defmodule DrinkWater.HydrationTracking do
          [value_str, id_str] <- String.split(decoded, "|", parts: 2),
          {id, ""} <- Integer.parse(id_str),
          {cursor_field, value_str} <- split_field_value(value_str) do
-      cursor_value = parse_cursor_value(value_str)
-
-      if cursor_value do
-        {:ok, cursor_value, id, cursor_field}
-      else
-        :error
+      case parse_cursor_value(value_str) do
+        nil -> :error
+        cursor_value -> {:ok, cursor_value, id, cursor_field}
       end
     else
       _ -> :error
