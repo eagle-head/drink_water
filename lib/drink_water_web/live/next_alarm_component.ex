@@ -7,8 +7,14 @@ defmodule DrinkWaterWeb.NextAlarmComponent do
   def update(assigns, socket) do
     alarm_settings = load_alarm_settings(assigns.user_id)
     now = Map.get(assigns, :now, Time.utc_now())
-    next_alarm = if alarm_settings, do: calculate_next_alarm(alarm_settings, now), else: nil
-    countdown = if next_alarm, do: calculate_countdown(next_alarm, now), else: nil
+
+    {next_alarm, countdown} =
+      with settings when not is_nil(settings) <- alarm_settings,
+           next when not is_nil(next) <- calculate_next_alarm(settings, now) do
+        {next, calculate_countdown(next, now)}
+      else
+        _ -> {nil, nil}
+      end
 
     {:ok,
      socket
@@ -43,7 +49,10 @@ defmodule DrinkWaterWeb.NextAlarmComponent do
         next_minutes = (intervals_passed + 1) * interval
         next_time = Time.add(start_time, next_minutes * 60, :second)
 
-        if Time.compare(next_time, end_time) != :gt, do: next_time, else: nil
+        case Time.compare(next_time, end_time) do
+          :gt -> nil
+          _ok -> next_time
+        end
     end
   end
 
