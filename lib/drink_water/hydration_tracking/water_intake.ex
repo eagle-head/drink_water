@@ -25,10 +25,9 @@ defmodule DrinkWater.HydrationTracking.WaterIntake do
 
   defp validate_not_future(changeset) do
     validate_change(changeset, :date_time_utc, fn :date_time_utc, date_time_utc ->
-      if DateTime.after?(date_time_utc, DateTime.utc_now()) do
-        [date_time_utc: "must not be in the future"]
-      else
-        []
+      case DateTime.compare(date_time_utc, DateTime.utc_now()) do
+        :gt -> [date_time_utc: "must not be in the future"]
+        _not_future -> []
       end
     end)
   end
