@@ -215,19 +215,14 @@ defmodule DrinkWater.UserManagement do
   end
 
   defp maybe_conflict({:error, %Ecto.Changeset{} = changeset}, resource, field) do
-    if has_unique_constraint_error?(changeset, field) do
-      {:error, :conflict, resource}
-    else
-      {:error, changeset}
+    case Enum.find(changeset.errors, fn
+           {^field, {_msg, opts}} -> opts[:constraint] == :unique
+           _ -> false
+         end) do
+      nil -> {:error, changeset}
+      _unique_error -> {:error, :conflict, resource}
     end
   end
 
   defp maybe_conflict(result, _resource, _field), do: result
-
-  defp has_unique_constraint_error?(changeset, field) do
-    Enum.any?(changeset.errors, fn
-      {^field, {_msg, opts}} -> opts[:constraint] == :unique
-      _ -> false
-    end)
-  end
 end

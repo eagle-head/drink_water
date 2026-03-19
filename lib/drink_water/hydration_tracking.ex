@@ -205,20 +205,16 @@ defmodule DrinkWater.HydrationTracking do
   end
 
   defp maybe_conflict({:error, %Ecto.Changeset{} = changeset}, resource) do
-    if has_unique_constraint_error?(changeset) do
-      {:error, :conflict, resource}
-    else
-      {:error, changeset}
+    case Enum.find(changeset.errors, fn
+           {_field, {_msg, opts}} -> opts[:constraint] == :unique
+           _ -> false
+         end) do
+      nil -> {:error, changeset}
+      _unique_error -> {:error, :conflict, resource}
     end
   end
 
   defp maybe_conflict(result, _resource), do: result
-
-  defp has_unique_constraint_error?(changeset) do
-    Enum.any?(changeset.errors, fn
-      {_field, {_msg, opts}} -> opts[:constraint] == :unique
-    end)
-  end
 
   # Query composition
 
