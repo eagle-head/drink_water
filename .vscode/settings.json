@@ -1,5 +1,17 @@
 {
     "cSpell.words": [
+        "datasource",
+        "defp",
+        "erlang",
+        "esbuild",
+        "grafana",
+        "healthcheck",
+        "loki",
+        "opentelemetry",
+        "pgdata",
+        "postgres",
+        "postgresql",
+        "prometheus",
         "unfetched",
         "Unfetched"
     ]
