@@ -46,22 +46,29 @@ defmodule DrinkWater.HydrationTracking.WaterIntakeFilter do
   defp validate_date_range(changeset) do
     start_date = get_field(changeset, :start_date)
     end_date = get_field(changeset, :end_date)
+    do_validate_date_range(changeset, start_date, end_date)
+  end
 
-    if start_date && end_date && DateTime.after?(start_date, end_date) do
-      add_error(changeset, :end_date, "must be after or equal to start_date")
-    else
-      changeset
+  defp do_validate_date_range(changeset, start_date, end_date)
+       when not is_nil(start_date) and not is_nil(end_date) do
+    case DateTime.compare(start_date, end_date) do
+      :gt -> add_error(changeset, :end_date, "must be after or equal to start_date")
+      _ok -> changeset
     end
   end
+
+  defp do_validate_date_range(changeset, _start_date, _end_date), do: changeset
 
   defp validate_volume_range(changeset) do
     min_vol = get_field(changeset, :min_volume)
     max_vol = get_field(changeset, :max_volume)
-
-    if min_vol && max_vol && min_vol > max_vol do
-      add_error(changeset, :max_volume, "must be greater than or equal to min_volume")
-    else
-      changeset
-    end
+    do_validate_volume_range(changeset, min_vol, max_vol)
   end
+
+  defp do_validate_volume_range(changeset, min_vol, max_vol)
+       when not is_nil(min_vol) and not is_nil(max_vol) and min_vol > max_vol do
+    add_error(changeset, :max_volume, "must be greater than or equal to min_volume")
+  end
+
+  defp do_validate_volume_range(changeset, _min_vol, _max_vol), do: changeset
 end
