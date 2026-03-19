@@ -9,8 +9,11 @@ defmodule DrinkWaterWeb.Plugs.LogMetadata do
 
   @impl true
   def call(conn, _opts) do
-    user_id = conn.params["user_id"] || conn.params["id"]
-    if user_id, do: Logger.metadata(user_id: user_id)
+    case conn.params["user_id"] || conn.params["id"] do
+      nil -> :ok
+      user_id -> Logger.metadata(user_id: user_id)
+    end
+
     conn
   end
 end
