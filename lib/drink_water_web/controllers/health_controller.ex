@@ -3,8 +3,12 @@ defmodule DrinkWaterWeb.HealthController do
 
   def index(conn, _params) do
     db_status = check_db()
-    status_code = if db_status == :ok, do: 200, else: 503
-    overall = if db_status == :ok, do: :healthy, else: :degraded
+
+    {status_code, overall} =
+      case db_status do
+        :ok -> {200, :healthy}
+        :error -> {503, :degraded}
+      end
 
     conn
     |> put_status(status_code)
