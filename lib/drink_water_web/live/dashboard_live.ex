@@ -91,22 +91,7 @@ defmodule DrinkWaterWeb.DashboardLive do
       selected_date: socket.assigns.selected_date
     )
 
-    # Only update progress/history if viewing today
-    if socket.assigns.selected_date == Date.utc_today() do
-      send_update(DrinkWaterWeb.ProgressComponent,
-        id: "progress",
-        user_id: socket.assigns.user.id,
-        goal: socket.assigns.goal,
-        selected_date: socket.assigns.selected_date
-      )
-
-      send_update(DrinkWaterWeb.HistoryComponent,
-        id: "history",
-        user_id: socket.assigns.user.id,
-        selected_date: socket.assigns.selected_date,
-        timezone: socket.assigns.timezone
-      )
-    end
+    maybe_update_daily_components(socket)
 
     {:noreply, socket}
   end
@@ -195,6 +180,24 @@ defmodule DrinkWaterWeb.DashboardLive do
   @impl true
   def handle_event("close-edit-modal", _params, socket) do
     {:noreply, assign(socket, editing_intake: nil)}
+  end
+
+  defp maybe_update_daily_components(socket) do
+    if socket.assigns.selected_date == Date.utc_today() do
+      send_update(DrinkWaterWeb.ProgressComponent,
+        id: "progress",
+        user_id: socket.assigns.user.id,
+        goal: socket.assigns.goal,
+        selected_date: socket.assigns.selected_date
+      )
+
+      send_update(DrinkWaterWeb.HistoryComponent,
+        id: "history",
+        user_id: socket.assigns.user.id,
+        selected_date: socket.assigns.selected_date,
+        timezone: socket.assigns.timezone
+      )
+    end
   end
 
   defp load_goal(user_id) do
