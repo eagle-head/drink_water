@@ -6,6 +6,14 @@ defmodule ProblemDetail do
   Designed to be reusable across Elixir projects.
 
   See: https://www.rfc-editor.org/rfc/rfc9457
+
+  ## Hex Package Extraction Notes
+
+  When extracting to a standalone hex package, consider:
+
+  - Expose `reason_phrase/1` as public API (like `Plug.Conn.Status.reason_phrase/1`)
+  - Validate unknown keyword options in `new/2` to fail fast on typos
+  - Add `when not is_nil(key)` guard to `put_extension/3` to prevent empty-string keys
   """
 
   @type t :: %__MODULE__{
@@ -121,28 +129,66 @@ defmodule ProblemDetail do
     %{pd | properties: Map.put(pd.properties, to_string(key), value)}
   end
 
-  @standard_field_names ~w(type title status detail instance)
-
-  @doc false
-  def __to_json_map__(%__MODULE__{} = pd) do
-    standard =
-      %{"type" => pd.type || "about:blank", "status" => pd.status}
-      |> put_non_nil("title", pd.title || Map.get(@reason_phrases, pd.status))
-      |> put_non_nil("detail", pd.detail)
-      |> put_non_nil("instance", pd.instance)
-
-    filtered_props = Map.drop(pd.properties, @standard_field_names)
-    Map.merge(filtered_props, standard)
-  end
-
-  defp put_non_nil(map, _key, nil), do: map
-  defp put_non_nil(map, key, value), do: Map.put(map, key, value)
-
   defimpl JSON.Encoder do
-    def encode(pd, encoder) do
-      pd
-      |> ProblemDetail.__to_json_map__()
+    @standard_field_names ~w(type title status detail instance)
+
+    @reason_phrases %{
+      400 => "Bad Request",
+      401 => "Unauthorized",
+      402 => "Payment Required",
+      403 => "Forbidden",
+      404 => "Not Found",
+      405 => "Method Not Allowed",
+      406 => "Not Acceptable",
+      407 => "Proxy Authentication Required",
+      408 => "Request Timeout",
+      409 => "Conflict",
+      410 => "Gone",
+      411 => "Length Required",
+      412 => "Precondition Failed",
+      413 => "Content Too Large",
+      414 => "URI Too Long",
+      415 => "Unsupported Media Type",
+      416 => "Range Not Satisfiable",
+      417 => "Expectation Failed",
+      418 => "I'm a Teapot",
+      421 => "Misdirected Request",
+      422 => "Unprocessable Content",
+      423 => "Locked",
+      424 => "Failed Dependency",
+      425 => "Too Early",
+      426 => "Upgrade Required",
+      428 => "Precondition Required",
+      429 => "Too Many Requests",
+      431 => "Request Header Fields Too Large",
+      451 => "Unavailable For Legal Reasons",
+      500 => "Internal Server Error",
+      501 => "Not Implemented",
+      502 => "Bad Gateway",
+      503 => "Service Unavailable",
+      504 => "Gateway Timeout",
+      505 => "HTTP Version Not Supported",
+      506 => "Variant Also Negotiates",
+      507 => "Insufficient Storage",
+      508 => "Loop Detected",
+      510 => "Not Extended",
+      511 => "Network Authentication Required"
+    }
+
+    def encode(%ProblemDetail{} = pd, encoder) do
+      standard =
+        %{"type" => pd.type || "about:blank", "status" => pd.status}
+        |> put_non_nil("title", pd.title || Map.get(@reason_phrases, pd.status))
+        |> put_non_nil("detail", pd.detail)
+        |> put_non_nil("instance", pd.instance)
+
+      pd.properties
+      |> Map.drop(@standard_field_names)
+      |> Map.merge(standard)
       |> encoder.(encoder)
     end
+
+    defp put_non_nil(map, _key, nil), do: map
+    defp put_non_nil(map, key, value), do: Map.put(map, key, value)
   end
 end
