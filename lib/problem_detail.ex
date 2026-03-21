@@ -102,4 +102,22 @@ defmodule ProblemDetail do
       instance: Keyword.get(opts, :instance)
     }
   end
+
+  @spec put_type(t(), String.t()) :: t()
+  def put_type(%__MODULE__{} = pd, type) when is_binary(type), do: %{pd | type: type}
+
+  @spec put_title(t(), String.t()) :: t()
+  def put_title(%__MODULE__{} = pd, title) when is_binary(title), do: %{pd | title: title}
+
+  @spec put_detail(t(), String.t()) :: t()
+  def put_detail(%__MODULE__{} = pd, detail) when is_binary(detail), do: %{pd | detail: detail}
+
+  @spec put_instance(t(), String.t()) :: t()
+  def put_instance(%__MODULE__{} = pd, instance) when is_binary(instance),
+    do: %{pd | instance: instance}
+
+  @spec put_extension(t(), String.Chars.t(), term()) :: t()
+  def put_extension(%__MODULE__{} = pd, key, value) do
+    %{pd | properties: Map.put(pd.properties, to_string(key), value)}
+  end
 end
