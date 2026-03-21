@@ -11,7 +11,7 @@ Migrated from [drink-water-api](https://github.com/eduardodsaraujo/drink-water-a
 | Framework     | Phoenix 1.8, Elixir 1.15+ |
 | Database      | PostgreSQL 17 (Docker)    |
 | Rate Limiting | Hammer 7 (ETS backend)    |
-| Error Format  | RFC 7807 Problem Details  |
+| Error Format  | RFC 9457 Problem Details  |
 
 ## Prerequisites
 
@@ -81,7 +81,7 @@ Seeds create 3 users (John, Jane, Alex) with alarm settings and water intake rec
 
 ## Error Handling
 
-All errors follow [RFC 7807 Problem Details](https://www.rfc-editor.org/rfc/rfc7807) with `application/problem+json` content type:
+All errors follow [RFC 9457 Problem Details](https://www.rfc-editor.org/rfc/rfc9457) with `application/problem+json` content type:
 
 ```json
 {
@@ -162,7 +162,7 @@ lib/
     plugs/
       input_sanitizer.ex      # Null byte + whitespace sanitization
       rate_limiter.ex         # Per-user rate limiting (Hammer)
-    problem_detail.ex         # RFC 7807 error catalog
+    problem_detail.ex         # RFC 9457 error catalog
     router.ex                 # API routes + rate limit pipelines
 ```
 

@@ -42,7 +42,7 @@ defmodule DrinkWaterWeb.AlarmSettingsControllerTest do
              } = json_response(conn, 200)["data"]
     end
 
-    test "renders errors in RFC 7807 format when data is invalid", %{conn: conn, user: user} do
+    test "renders errors in RFC 9457 format when data is invalid", %{conn: conn, user: user} do
       conn = post(conn, ~p"/api/users/#{user.id}/alarm_settings", alarm_settings: @invalid_attrs)
       response = json_response(conn, 422)
       assert response["type"] == "https://www.drinkwater.com.br/validation-error"
@@ -52,18 +52,18 @@ defmodule DrinkWaterWeb.AlarmSettingsControllerTest do
       assert response["detail"] ==
                "One or more fields are invalid. Please correct them and try again."
 
-      assert response["instance"] == "/api/users/#{user.id}/alarm_settings"
+      assert response["instance"] == "http://www.example.com/api/users/#{user.id}/alarm_settings"
       assert response["errors"] != %{}
     end
 
-    test "returns 404 in RFC 7807 format for nonexistent user", %{conn: conn} do
+    test "returns 404 in RFC 9457 format for nonexistent user", %{conn: conn} do
       conn = post(conn, ~p"/api/users/0/alarm_settings", alarm_settings: @create_attrs)
       response = json_response(conn, 404)
       assert response["type"] == "https://www.drinkwater.com.br/user-not-found"
       assert response["title"] == "Not Found"
       assert response["status"] == 404
       assert response["detail"] == "The requested user account was not found."
-      assert response["instance"] == "/api/users/0/alarm_settings"
+      assert response["instance"] == "http://www.example.com/api/users/0/alarm_settings"
     end
 
     test "returns 409 when creating duplicate alarm settings", %{conn: conn, user: user} do
@@ -75,7 +75,7 @@ defmodule DrinkWaterWeb.AlarmSettingsControllerTest do
       assert response["title"] == "Conflict"
       assert response["status"] == 409
       assert response["detail"] == "Alarm settings already exist for this user."
-      assert response["instance"] == "/api/users/#{user.id}/alarm_settings"
+      assert response["instance"] == "http://www.example.com/api/users/#{user.id}/alarm_settings"
     end
   end
 
@@ -92,7 +92,7 @@ defmodule DrinkWaterWeb.AlarmSettingsControllerTest do
              } = json_response(conn, 200)["data"]
     end
 
-    test "returns 404 in RFC 7807 format when user has no settings", %{conn: conn, user: user} do
+    test "returns 404 in RFC 9457 format when user has no settings", %{conn: conn, user: user} do
       conn = get(conn, ~p"/api/users/#{user.id}/alarm_settings")
       assert {"content-type", "application/problem+json; charset=utf-8"} in conn.resp_headers
       response = json_response(conn, 404)
@@ -100,17 +100,17 @@ defmodule DrinkWaterWeb.AlarmSettingsControllerTest do
       assert response["title"] == "Not Found"
       assert response["status"] == 404
       assert response["detail"] == "The requested alarm settings were not found."
-      assert response["instance"] == "/api/users/#{user.id}/alarm_settings"
+      assert response["instance"] == "http://www.example.com/api/users/#{user.id}/alarm_settings"
     end
 
-    test "returns 404 in RFC 7807 format for nonexistent user", %{conn: conn} do
+    test "returns 404 in RFC 9457 format for nonexistent user", %{conn: conn} do
       conn = get(conn, ~p"/api/users/0/alarm_settings")
       response = json_response(conn, 404)
       assert response["type"] == "https://www.drinkwater.com.br/user-not-found"
       assert response["title"] == "Not Found"
       assert response["status"] == 404
       assert response["detail"] == "The requested user account was not found."
-      assert response["instance"] == "/api/users/0/alarm_settings"
+      assert response["instance"] == "http://www.example.com/api/users/0/alarm_settings"
     end
   end
 
@@ -129,7 +129,7 @@ defmodule DrinkWaterWeb.AlarmSettingsControllerTest do
              } = json_response(conn, 200)["data"]
     end
 
-    test "renders errors in RFC 7807 format when data is invalid", %{conn: conn, user: user} do
+    test "renders errors in RFC 9457 format when data is invalid", %{conn: conn, user: user} do
       alarm_settings_fixture(user)
 
       conn =
@@ -143,7 +143,7 @@ defmodule DrinkWaterWeb.AlarmSettingsControllerTest do
       assert response["detail"] ==
                "One or more fields are invalid. Please correct them and try again."
 
-      assert response["instance"] == "/api/users/#{user.id}/alarm_settings"
+      assert response["instance"] == "http://www.example.com/api/users/#{user.id}/alarm_settings"
       assert response["errors"] != %{}
     end
   end
@@ -161,7 +161,7 @@ defmodule DrinkWaterWeb.AlarmSettingsControllerTest do
       assert response["title"] == "Not Found"
       assert response["status"] == 404
       assert response["detail"] == "The requested alarm settings were not found."
-      assert response["instance"] == "/api/users/#{user.id}/alarm_settings"
+      assert response["instance"] == "http://www.example.com/api/users/#{user.id}/alarm_settings"
     end
   end
 end

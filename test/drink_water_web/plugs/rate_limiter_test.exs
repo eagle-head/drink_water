@@ -20,7 +20,7 @@ defmodule DrinkWaterWeb.Plugs.RateLimiterTest do
       assert json_response(conn, 200)
     end
 
-    test "returns 429 with RFC 7807 and Retry-After when limit exceeded", %{conn: conn} do
+    test "returns 429 with RFC 9457 and Retry-After when limit exceeded", %{conn: conn} do
       user = user_fixture()
 
       for _ <- 1..30 do

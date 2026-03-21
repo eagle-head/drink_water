@@ -169,7 +169,7 @@ GET {{baseUrl}}/users/{{johnId}}/water_intakes?start_date=2024-08-14T00:00:00Z&e
 GET {{baseUrl}}/users/{{johnId}}/water_intakes?start_date=2024-08-14T00:00:00Z&end_date=2024-08-14T23:59:59Z&sort_field=volume&sort_direction=desc&size=2
 
 ###############################################################################
-# Error Catalog (RFC 7807 Problem Details)
+# Error Catalog (RFC 9457 Problem Details)
 # All errors return application/problem+json with type, title, status, detail.
 # Run seeds first: mix ecto.reset && mix run priv/repo/seeds.exs
 ###############################################################################
