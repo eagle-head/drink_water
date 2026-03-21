@@ -4,8 +4,8 @@ defmodule DrinkWaterWeb.ErrorJSONTest do
   alias DrinkWaterWeb.ErrorJSON
 
   describe "error/1 (FallbackController path)" do
-    test "returns the problem map as-is" do
-      problem = %{type: "test", title: "Test", status: 400, detail: "test", instance: "/test"}
+    test "returns the ProblemDetail struct as-is" do
+      problem = ProblemDetail.new(400, type: "test", detail: "test")
       assert ErrorJSON.error(%{problem: problem}) == problem
     end
   end
