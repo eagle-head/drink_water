@@ -10,7 +10,7 @@ defmodule DrinkWaterWeb.Plugs.RateLimiter do
     * `:key_params` - list of param names to try for user identification (default: ["user_id"])
   """
   import Plug.Conn
-  alias DrinkWaterWeb.ProblemDetail
+  alias DrinkWaterWeb.ErrorCatalog
 
   @behaviour Plug
 
@@ -54,7 +54,7 @@ defmodule DrinkWaterWeb.Plugs.RateLimiter do
         conn
         |> put_resp_content_type("application/problem+json")
         |> put_resp_header("retry-after", Integer.to_string(retry_after))
-        |> send_resp(429, JSON.encode!(ProblemDetail.build(conn, :rate_limit_exceeded)))
+        |> send_resp(429, JSON.encode!(ErrorCatalog.build(conn, :rate_limit_exceeded)))
         |> halt()
     end
   end
