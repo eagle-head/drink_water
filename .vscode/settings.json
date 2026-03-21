@@ -1,18 +1,25 @@
 {
     "cSpell.words": [
         "datasource",
+        "defimpl",
+        "defmodule",
         "defp",
+        "defstruct",
+        "dgettext",
         "erlang",
         "esbuild",
         "grafana",
         "healthcheck",
         "loki",
+        "moduledoc",
         "opentelemetry",
         "pgdata",
         "postgres",
         "postgresql",
+        "precommit",
         "prometheus",
         "unfetched",
-        "Unfetched"
+        "Unfetched",
+        "waterintake"
     ]
 }
