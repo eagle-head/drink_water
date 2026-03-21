@@ -17,17 +17,17 @@ defmodule DrinkWaterWeb.ErrorJSONTest do
 
       assert result.type == "https://www.drinkwater.com.br/internal-server-error"
       assert result.status == 500
-      assert result.instance == "/api/users"
+      assert result.instance == "http://www.example.com/api/users"
     end
 
     test "returns parsing-error for Plug.Parsers.ParseError" do
       conn = build_conn(:post, "/api/users")
-      reason = %Plug.Parsers.ParseError{exception: %Jason.DecodeError{data: ""}}
+      reason = %Plug.Parsers.ParseError{exception: %JSON.DecodeError{data: ""}}
       result = ErrorJSON.render("400.json", %{conn: conn, reason: reason})
 
       assert result.type == "https://www.drinkwater.com.br/parsing-error"
       assert result.status == 400
-      assert result.instance == "/api/users"
+      assert result.instance == "http://www.example.com/api/users"
     end
 
     test "returns invalid-argument for Phoenix.ActionClauseError" do
@@ -37,7 +37,7 @@ defmodule DrinkWaterWeb.ErrorJSONTest do
 
       assert result.type == "https://www.drinkwater.com.br/invalid-argument"
       assert result.status == 400
-      assert result.instance == "/api/users"
+      assert result.instance == "http://www.example.com/api/users"
     end
   end
 end

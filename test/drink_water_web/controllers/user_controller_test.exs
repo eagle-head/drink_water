@@ -63,7 +63,7 @@ defmodule DrinkWaterWeb.UserControllerTest do
              } = json_response(conn, 200)["data"]
     end
 
-    test "renders errors in RFC 7807 format when data is invalid", %{conn: conn} do
+    test "renders errors in RFC 9457 format when data is invalid", %{conn: conn} do
       conn = post(conn, ~p"/api/users", user: @invalid_attrs)
       assert {"content-type", "application/problem+json; charset=utf-8"} in conn.resp_headers
       response = json_response(conn, 422)
@@ -74,7 +74,7 @@ defmodule DrinkWaterWeb.UserControllerTest do
       assert response["detail"] ==
                "One or more fields are invalid. Please correct them and try again."
 
-      assert response["instance"] == "/api/users"
+      assert response["instance"] == "http://www.example.com/api/users"
       assert response["errors"] != %{}
     end
 
@@ -96,7 +96,7 @@ defmodule DrinkWaterWeb.UserControllerTest do
       assert response["title"] == "Conflict"
       assert response["status"] == 409
       assert response["detail"] == "A user with this email address already exists."
-      assert response["instance"] == "/api/users"
+      assert response["instance"] == "http://www.example.com/api/users"
     end
   end
 
@@ -123,7 +123,7 @@ defmodule DrinkWaterWeb.UserControllerTest do
              } = json_response(conn, 200)["data"]
     end
 
-    test "renders errors in RFC 7807 format when data is invalid", %{conn: conn, user: user} do
+    test "renders errors in RFC 9457 format when data is invalid", %{conn: conn, user: user} do
       conn = put(conn, ~p"/api/users/#{user}", user: @invalid_attrs)
       response = json_response(conn, 422)
       assert response["type"] == "https://www.drinkwater.com.br/validation-error"
@@ -133,7 +133,7 @@ defmodule DrinkWaterWeb.UserControllerTest do
       assert response["detail"] ==
                "One or more fields are invalid. Please correct them and try again."
 
-      assert response["instance"] == "/api/users/#{user.id}"
+      assert response["instance"] == "http://www.example.com/api/users/#{user.id}"
       assert response["errors"] != %{}
     end
   end
@@ -151,12 +151,12 @@ defmodule DrinkWaterWeb.UserControllerTest do
       assert response["title"] == "Not Found"
       assert response["status"] == 404
       assert response["detail"] == "The requested user account was not found."
-      assert response["instance"] == "/api/users/#{user.id}"
+      assert response["instance"] == "http://www.example.com/api/users/#{user.id}"
     end
   end
 
   describe "not found" do
-    test "show returns 404 in RFC 7807 format for nonexistent user", %{conn: conn} do
+    test "show returns 404 in RFC 9457 format for nonexistent user", %{conn: conn} do
       conn = get(conn, ~p"/api/users/0")
       assert {"content-type", "application/problem+json; charset=utf-8"} in conn.resp_headers
       response = json_response(conn, 404)
@@ -164,17 +164,17 @@ defmodule DrinkWaterWeb.UserControllerTest do
       assert response["title"] == "Not Found"
       assert response["status"] == 404
       assert response["detail"] == "The requested user account was not found."
-      assert response["instance"] == "/api/users/0"
+      assert response["instance"] == "http://www.example.com/api/users/0"
     end
 
-    test "update returns 404 in RFC 7807 format for nonexistent user", %{conn: conn} do
+    test "update returns 404 in RFC 9457 format for nonexistent user", %{conn: conn} do
       conn = put(conn, ~p"/api/users/0", user: @update_attrs)
       response = json_response(conn, 404)
       assert response["type"] == "https://www.drinkwater.com.br/user-not-found"
       assert response["title"] == "Not Found"
       assert response["status"] == 404
       assert response["detail"] == "The requested user account was not found."
-      assert response["instance"] == "/api/users/0"
+      assert response["instance"] == "http://www.example.com/api/users/0"
     end
 
     test "delete returns 204 for nonexistent user (idempotent)", %{conn: conn} do
@@ -189,7 +189,7 @@ defmodule DrinkWaterWeb.UserControllerTest do
       assert response["title"] == "Not Found"
       assert response["status"] == 404
       assert response["detail"] == "The requested user account was not found."
-      assert response["instance"] == "/api/users/abc"
+      assert response["instance"] == "http://www.example.com/api/users/abc"
     end
   end
 
@@ -204,7 +204,7 @@ defmodule DrinkWaterWeb.UserControllerTest do
 
       assert status == 400
       assert {"content-type", "application/json; charset=utf-8"} in headers
-      response = Jason.decode!(body)
+      response = JSON.decode!(body)
       assert response["type"] == "https://www.drinkwater.com.br/parsing-error"
       assert response["title"] == "Bad Request"
       assert response["status"] == 400
@@ -212,7 +212,7 @@ defmodule DrinkWaterWeb.UserControllerTest do
       assert response["detail"] ==
                "Unable to process the request. Please check that your data is properly formatted."
 
-      assert response["instance"] == "/api/users"
+      assert response["instance"] == "http://www.example.com/api/users"
     end
 
     test "returns 400 invalid-argument when user key is missing from body", %{conn: conn} do
@@ -223,12 +223,12 @@ defmodule DrinkWaterWeb.UserControllerTest do
 
       assert status == 400
       assert {"content-type", "application/json; charset=utf-8"} in headers
-      response = Jason.decode!(body)
+      response = JSON.decode!(body)
       assert response["type"] == "https://www.drinkwater.com.br/invalid-argument"
       assert response["title"] == "Bad Request"
       assert response["status"] == 400
       assert response["detail"] == "An invalid argument was provided."
-      assert response["instance"] == "/api/users"
+      assert response["instance"] == "http://www.example.com/api/users"
     end
   end
 

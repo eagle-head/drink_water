@@ -59,8 +59,8 @@ config :logger, :default_formatter,
   format: "$time $metadata[$level] $message\n",
   metadata: [:request_id, :user_id]
 
-# Use Jason for JSON parsing in Phoenix
-config :phoenix, :json_library, Jason
+# Use Elixir 1.18+ native JSON module for parsing in Phoenix
+config :phoenix, :json_library, JSON
 
 # PromEx Prometheus metrics
 config :drink_water, DrinkWater.PromEx,
