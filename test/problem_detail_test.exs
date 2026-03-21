@@ -119,4 +119,75 @@ defmodule ProblemDetailTest do
       assert pd.properties == %{"errors" => %{name: ["required"]}}
     end
   end
+
+  describe "JSON serialization" do
+    test "encodes with defaults — about:blank type and auto-resolved title" do
+      json = ProblemDetail.new(500) |> JSON.encode!() |> JSON.decode!()
+
+      assert json == %{
+               "type" => "about:blank",
+               "title" => "Internal Server Error",
+               "status" => 500
+             }
+    end
+
+    test "omits nil detail and instance from output" do
+      json = ProblemDetail.new(404) |> JSON.encode!() |> JSON.decode!()
+      refute Map.has_key?(json, "detail")
+      refute Map.has_key?(json, "instance")
+    end
+
+    test "encodes all fields when present" do
+      json =
+        ProblemDetail.new(404)
+        |> ProblemDetail.put_type("https://example.com/not-found")
+        |> ProblemDetail.put_detail("User not found")
+        |> ProblemDetail.put_instance("https://example.com/api/users/999")
+        |> JSON.encode!()
+        |> JSON.decode!()
+
+      assert json == %{
+               "type" => "https://example.com/not-found",
+               "title" => "Not Found",
+               "status" => 404,
+               "detail" => "User not found",
+               "instance" => "https://example.com/api/users/999"
+             }
+    end
+
+    test "flattens properties as top-level JSON fields" do
+      json =
+        ProblemDetail.new(404)
+        |> ProblemDetail.put_detail("Not found")
+        |> ProblemDetail.put_extension("trace_id", "abc-123")
+        |> JSON.encode!()
+        |> JSON.decode!()
+
+      assert json["trace_id"] == "abc-123"
+      refute Map.has_key?(json, "properties")
+    end
+
+    test "standard fields win over extension name collisions" do
+      json =
+        ProblemDetail.new(400)
+        |> ProblemDetail.put_detail("Real detail")
+        |> ProblemDetail.put_extension("detail", "Fake detail")
+        |> ProblemDetail.put_extension("custom", "kept")
+        |> JSON.encode!()
+        |> JSON.decode!()
+
+      assert json["detail"] == "Real detail"
+      assert json["custom"] == "kept"
+    end
+
+    test "encodes nested extension values" do
+      json =
+        ProblemDetail.new(422)
+        |> ProblemDetail.put_extension("errors", %{email: ["can't be blank"]})
+        |> JSON.encode!()
+        |> JSON.decode!()
+
+      assert json["errors"] == %{"email" => ["can't be blank"]}
+    end
+  end
 end

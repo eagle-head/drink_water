@@ -120,4 +120,29 @@ defmodule ProblemDetail do
   def put_extension(%__MODULE__{} = pd, key, value) do
     %{pd | properties: Map.put(pd.properties, to_string(key), value)}
   end
+
+  @standard_field_names ~w(type title status detail instance)
+
+  @doc false
+  def __to_json_map__(%__MODULE__{} = pd) do
+    standard =
+      %{"type" => pd.type || "about:blank", "status" => pd.status}
+      |> put_non_nil("title", pd.title || Map.get(@reason_phrases, pd.status))
+      |> put_non_nil("detail", pd.detail)
+      |> put_non_nil("instance", pd.instance)
+
+    filtered_props = Map.drop(pd.properties, @standard_field_names)
+    Map.merge(filtered_props, standard)
+  end
+
+  defp put_non_nil(map, _key, nil), do: map
+  defp put_non_nil(map, key, value), do: Map.put(map, key, value)
+
+  defimpl JSON.Encoder do
+    def encode(pd, encoder) do
+      pd
+      |> ProblemDetail.__to_json_map__()
+      |> encoder.(encoder)
+    end
+  end
 end
