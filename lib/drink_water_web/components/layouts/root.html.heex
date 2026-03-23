@@ -12,6 +12,24 @@
     <script nonce={assigns[:csp_nonce]} defer phx-track-static type="text/javascript" src={~p"/assets/js/app.js"}>
     </script>
     <script nonce={assigns[:csp_nonce]}>
+      document.addEventListener("securitypolicyviolation", (e) => {
+        fetch("/api/csp-report", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({"csp-report": {
+            "document-uri": e.documentURI,
+            "violated-directive": e.violatedDirective,
+            "effective-directive": e.effectiveDirective,
+            "blocked-uri": e.blockedURI,
+            "source-file": e.sourceFile,
+            "line-number": e.lineNumber,
+            "column-number": e.columnNumber,
+            "original-policy": e.originalPolicy
+          }})
+        });
+      });
+    </script>
+    <script nonce={assigns[:csp_nonce]}>
       (() => {
         const setTheme = (theme) => {
           if (theme === "system") {

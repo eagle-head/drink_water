@@ -51,6 +51,7 @@ defmodule DrinkWaterWeb.Plugs.CspNonce do
     conn
     |> assign(:csp_nonce, nonce)
     |> put_resp_header("content-security-policy", policy(nonce))
+    |> put_resp_header("reporting-endpoints", ~s(csp-endpoint="/api/csp-report"))
   end
 
   defp generate_nonce do
@@ -63,14 +64,16 @@ defmodule DrinkWaterWeb.Plugs.CspNonce do
     [
       "default-src 'self'",
       "script-src 'nonce-#{nonce}' 'strict-dynamic'",
-      "style-src 'self' 'unsafe-inline'",
+      "style-src 'self' 'nonce-#{nonce}'",
       "img-src 'self' data:",
       "font-src 'self'",
       "connect-src 'self' ws: wss:",
       "object-src 'none'",
       "form-action 'self'",
       "base-uri 'self'",
-      "frame-ancestors 'self'"
+      "frame-ancestors 'self'",
+      "report-uri /api/csp-report",
+      "report-to csp-endpoint"
     ]
     |> Enum.join("; ")
   end

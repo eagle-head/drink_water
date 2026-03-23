@@ -48,6 +48,13 @@ defmodule DrinkWaterWeb.Router do
   @doc false
   def csp_nonce(conn), do: conn.assigns[:csp_nonce]
 
+  # CSP violation reports — no CSRF, no rate limiting, accepts application/csp-report
+  scope "/api", DrinkWaterWeb do
+    pipe_through :api
+
+    post "/csp-report", CspReportController, :create
+  end
+
   scope "/api", DrinkWaterWeb do
     pipe_through :api
 
