@@ -26,6 +26,8 @@ import {hooks as colocatedHooks} from "phoenix-colocated/drink_water"
 import topbar from "../vendor/topbar"
 
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
+// CSP nonce — available for client-side scripts that dynamically create script elements
+const cspNonce = document.querySelector("meta[name='csp-nonce']")?.content
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: {

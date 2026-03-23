@@ -8,6 +8,7 @@ defmodule DrinkWaterWeb.Router do
     plug :put_root_layout, html: {DrinkWaterWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug DrinkWaterWeb.Plugs.CspNonce
   end
 
   pipeline :api do
@@ -37,8 +38,15 @@ defmodule DrinkWaterWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
-    live "/dashboard", DashboardLive
+
+    live_session :default,
+      session: %{"csp_nonce" => {DrinkWaterWeb.Router, :csp_nonce, []}} do
+      live "/dashboard", DashboardLive
+    end
   end
+
+  @doc false
+  def csp_nonce(conn), do: conn.assigns[:csp_nonce]
 
   scope "/api", DrinkWaterWeb do
     pipe_through :api
