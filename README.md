@@ -4,7 +4,7 @@
 
 Hydration monitoring REST API built with Phoenix. Track water intake, manage personalized alarm settings, and monitor hydration goals.
 
-Migrated from [drink-water-api](https://github.com/eduardodsaraujo/drink-water-api) (Java/Spring Boot) to learn Elixir/Phoenix.
+Built to learn Elixir/Phoenix.
 
 ## Tech Stack
 
