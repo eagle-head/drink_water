@@ -2,7 +2,7 @@
 
 Hydration monitoring REST API built with Phoenix. Track water intake, manage personalized alarm settings, and monitor hydration goals.
 
-Migrated from [drink-water-api](https://github.com/eduardodsaraujo/drink-water-api) (Java/Spring Boot) to learn Elixir/Phoenix. See [MIGRATION_ROADMAP.md](MIGRATION_ROADMAP.md) for the full migration strategy.
+Migrated from [drink-water-api](https://github.com/eduardodsaraujo/drink-water-api) (Java/Spring Boot) to learn Elixir/Phoenix.
 
 ## Tech Stack
 
@@ -189,6 +189,4 @@ mix ecto.reset
 
 ## Current Status
 
-Phases 1-3 complete (Foundation, Core Domain, Production Quality). See [MIGRATION_ROADMAP.md](MIGRATION_ROADMAP.md) for details.
-
-Next: Phase 4 (LiveView dashboard, PubSub, Oban background jobs).
+REST API complete with LiveView dashboard, observability stack (Telemetry, PromEx, OpenTelemetry, Sentry, Grafana), and production-quality error handling.
